@@ -26,6 +26,7 @@ func (e *ExecService) Execute(args ExecuteArgs) error {
 	fmt.Println("> ", command)
 
 	currentCmd := exec.Command("/bin/bash", "-c", command)
+	currentCmd.Dir = args.Directory
 
 	// Create buffers for stdout and stderr
 	var stdoutBuf, stderrBuf bytes.Buffer
