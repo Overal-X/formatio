@@ -1,1 +1,6 @@
-# formatio
+# Formatio
+
+# Requirements
+
+- Docker
+- Nixpacks
