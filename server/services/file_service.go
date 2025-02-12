@@ -64,8 +64,21 @@ func (fs *FileService) Unzip(args UnzipArgs) (err error) {
 		path := filepath.Join(args.Destination, relPath)
 
 		// Modified path validation to handle absolute paths
-		destPath := filepath.Clean(args.Destination)
-		if !strings.HasPrefix(filepath.Clean(path), destPath) {
+		// Resolve any symlinks in the destination path
+		destPath, err := filepath.EvalSymlinks(args.Destination)
+		if err != nil {
+			return fmt.Errorf("failed to resolve destination path: %w", err)
+		}
+		destPath = filepath.Clean(destPath)
+
+		// Resolve and validate the target path
+		path = filepath.Clean(path)
+		targetPath, err := filepath.EvalSymlinks(filepath.Dir(path))
+		if err != nil {
+			return fmt.Errorf("failed to resolve target path: %w", err)
+		}
+
+		if !strings.HasPrefix(targetPath, destPath) {
 			return fmt.Errorf("illegal file path: %s", path)
 		}
 
