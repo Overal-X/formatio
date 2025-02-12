@@ -22,6 +22,8 @@ type BuildArgs struct {
 
 type RunArgs struct {
 	AppName  string
+	Env      *map[string]string
+	Ports    *map[string]string
 	Callback NixpacksCallback
 }
 
@@ -51,9 +53,11 @@ func (n *NixpacksService) Build(args BuildArgs) (err error) {
 	command := fmt.Sprintf("nixpacks build %s --name %s", args.AppDirectory, args.AppName)
 
 	if args.Env != nil {
+		env := ""
 		lo.ForEach(lo.Keys(*args.Env), func(k string, _ int) {
-			command += fmt.Sprintf(" --env %s=%s", k, (*args.Env)[k])
+			env += fmt.Sprintf("%s=%s ", k, (*args.Env)[k])
 		})
+		command += fmt.Sprintf(` --env "%s"`, env)
 	}
 
 	return n.execHelper.Execute(ExecuteArgs{
@@ -70,8 +74,24 @@ func (n *NixpacksService) Build(args BuildArgs) (err error) {
 }
 
 func (n *NixpacksService) Run(args RunArgs) (err error) {
+	command := "docker run -t -d"
+
+	if args.Env != nil {
+		lo.ForEach(lo.Keys(*args.Env), func(k string, _ int) {
+			command += fmt.Sprintf(" -e %s=\"%s\"", k, (*args.Env)[k])
+		})
+	}
+
+	if args.Ports != nil {
+		lo.ForEach(lo.Keys(*args.Ports), func(k string, _ int) {
+			command += fmt.Sprintf(" -p %s:%s", k, (*args.Ports)[k])
+		})
+	}
+
+	command += fmt.Sprintf(" %s", args.AppName)
+
 	return n.execHelper.Execute(ExecuteArgs{
-		Command: fmt.Sprintf("docker run -t %s", args.AppName),
+		Command: command,
 		OutputCallback: func(s string) {
 			args.Callback(&s, nil)
 		},
