@@ -9,8 +9,23 @@ import (
 func main() {
 	execService := services.NewExecService()
 	nixpacksService := services.NewNixpacksService(execService)
+	fileService := services.NewFileService()
 
-	err := nixpacksService.Install(services.InstallArgs{
+	err := fileService.Unzip(services.UnzipArgs{
+		ZipFile:     "<path/to/zip/file.zip",
+		Destination: "./_temp",
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		err := fileService.Remove(services.RemoveArgs{File: "./_temp"})
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	err = nixpacksService.Install(services.InstallArgs{
 		Callback: func(out *string, err error) {
 			if err != nil {
 				panic(err)
@@ -22,13 +37,10 @@ func main() {
 		panic(err)
 	}
 
-	appDirectory := "<test-project-directory>"
+	appDirectory := "./_temp"
 	err = nixpacksService.Build(services.BuildArgs{
-		AppName:      "shortlet",
+		AppName:      "my-app",
 		AppDirectory: appDirectory,
-		Env: &map[string]string{
-			"NIXPACKS_NODE_VERSION": "20",
-		},
 		Callback: func(out *string, err error) {
 			if err != nil {
 				panic(err)
@@ -43,7 +55,9 @@ func main() {
 	}
 
 	err = nixpacksService.Run(services.RunArgs{
-		AppName: "shortlet",
+		AppName: "my-app",
+		Env:     &map[string]string{"PORT": "3000"},
+		Ports:   &map[string]string{"3000": "3000"},
 		Callback: func(out *string, err error) {
 			if err != nil {
 				panic(err)
