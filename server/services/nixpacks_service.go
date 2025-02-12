@@ -74,22 +74,37 @@ func (n *NixpacksService) Build(args BuildArgs) (err error) {
 }
 
 func (n *NixpacksService) Run(args RunArgs) (err error) {
-	command := "docker run -t -d"
+	// Use string builder for better performance
+	var command strings.Builder
+	command.WriteString("docker run -t -d")
 
+	// Add environment variables with proper escaping
 	if args.Env != nil {
 		lo.ForEach(lo.Keys(*args.Env), func(k string, _ int) {
-			command += fmt.Sprintf(" -e %s=\"%s\"", k, (*args.Env)[k])
+			// Escape special characters in environment values
+			value := strings.ReplaceAll((*args.Env)[k], "\"", "\\\"")
+			fmt.Fprintf(&command, " -e %s=\"%s\"", k, value)
 		})
 	}
 
+	// Add port mappings with validation
 	if args.Ports != nil {
 		lo.ForEach(lo.Keys(*args.Ports), func(k string, _ int) {
-			command += fmt.Sprintf(" -p %s:%s", k, (*args.Ports)[k])
+			// Validate port numbers
+			if _, err := strconv.Atoi(k); err != nil {
+				err = fmt.Errorf("invalid host port: %s", k)
+				return
+			}
+			if _, err := strconv.Atoi((*args.Ports)[k]); err != nil {
+				err = fmt.Errorf("invalid container port: %s", (*args.Ports)[k])
+				return
+			}
+			fmt.Fprintf(&command, " -p %s:%s", k, (*args.Ports)[k])
 		})
 	}
 
-	command += fmt.Sprintf(" %s", args.AppName)
-
+	// Escape app name to prevent command injection
+	fmt.Fprintf(&command, " %s", strings.ReplaceAll(args.AppName, " ", "\\ "))
 	return n.execHelper.Execute(ExecuteArgs{
 		Command: command,
 		OutputCallback: func(s string) {
