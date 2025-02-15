@@ -1,0 +1,8 @@
+version: "3"
+
+tasks:
+  dev:
+    cmd: air
+
+  doc:generate:
+    cmd: swag init -ot=go,yaml --requiredByDefault=true

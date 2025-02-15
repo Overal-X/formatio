@@ -3,69 +3,34 @@ package main
 import (
 	"fmt"
 
-	"github.com/overal-x/formatio/services"
+	"github.com/labstack/gommon/log"
+	"github.com/overal-x/formatio/config"
+	"github.com/overal-x/formatio/handlers"
+	"github.com/overal-x/formatio/models"
 )
 
+// @title Formatio API
+// @version 1.0
+// @BasePath /
 func main() {
-	execService := services.NewExecService()
-	nixpacksService := services.NewNixpacksService(execService)
-	fileService := services.NewFileService()
-
-	err := fileService.Unzip(services.UnzipArgs{
-		ZipFile:     "<path/to/zip/file.zip",
-		Destination: "./_temp",
-	})
+	env := config.NewEnv()
+	db, err := config.NewDatabaseConnection(env)
 	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		err := fileService.Remove(services.RemoveArgs{File: "./_temp"})
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	err = nixpacksService.Install(services.InstallArgs{
-		Callback: func(out *string, err error) {
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(*out)
-		},
-	})
-	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	appDirectory := "./_temp"
-	err = nixpacksService.Build(services.BuildArgs{
-		AppName:      "my-app",
-		AppDirectory: appDirectory,
-		Callback: func(out *string, err error) {
-			if err != nil {
-				panic(err)
-			}
-			if out != nil {
-				fmt.Println(*out)
-			}
-		},
-	})
+	err = db.AutoMigrate(&models.GithubApp{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	err = nixpacksService.Run(services.RunArgs{
-		AppName: "my-app",
-		Env:     &map[string]string{"PORT": "3000"},
-		Ports:   &map[string]string{"3000": "3000"},
-		Callback: func(out *string, err error) {
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(*out)
-		},
-	})
-	if err != nil {
-		panic(err)
-	}
+	githubHandler := handlers.NewGithubHandler(db)
+
+	srv := config.NewServer()
+
+	srv.GET("/api/providers/github/", githubHandler.CreateApp)
+	srv.GET("/api/providers/github/apps/", githubHandler.ListApps)
+	srv.POST("/api/deploy/github/", githubHandler.DeployRepo)
+
+	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", env.PORT)))
 }

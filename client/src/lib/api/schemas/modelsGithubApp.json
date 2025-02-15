@@ -1,0 +1,24 @@
+{
+	"properties": {
+		"appId": { "type": "integer" },
+		"appName": { "type": "string" },
+		"createdAt": { "type": "string" },
+		"id": { "type": "string" },
+		"ownerId": { "type": "integer" },
+		"ownerType": { "type": "string" },
+		"ownerUsername": { "type": "string" },
+		"updatedAt": { "type": "string" }
+	},
+	"required": [
+		"appId",
+		"appName",
+		"createdAt",
+		"id",
+		"ownerId",
+		"ownerType",
+		"ownerUsername",
+		"updatedAt"
+	],
+	"type": "object",
+	"x-readme-ref-name": "models.GithubApp"
+}
