@@ -2,14 +2,10 @@
 
 Formatio is an open-source cloud platform designed to simplify application deployment and management. It provides a streamlined experience for developers by automating infrastructure setup, scaling, and monitoring. With Formatio, you can easily deploy applications, manage resources, and ensure high availability without deep infrastructure expertise.
 
-## Features
+## Roadmap
+https://github.com/Overal-X/formatio/milestones
 
-- **Scalable Infrastructure**: Leverages Golang's performance and concurrency features.
-- **Reliable Data Management**: Uses Postgres for structured data storage, Redis for caching, and RabbitMQ for messaging.
-- **Modern UI**: Built with Svelte 5 for a fast and responsive user experience.
-- **Monorepo Architecture**: Backend (`server`) and frontend (`client`) are housed in a single repository for easy collaboration.
-
-## Installation
+## Development
 
 ### Prerequisites
 Ensure you have the following installed:
