@@ -1,0 +1,54 @@
+basePath: /
+definitions:
+  models.GithubApp:
+    properties:
+      appId:
+        type: integer
+      appName:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      ownerId:
+        type: integer
+      ownerType:
+        type: string
+      ownerUsername:
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - appId
+    - appName
+    - createdAt
+    - id
+    - ownerId
+    - ownerType
+    - ownerUsername
+    - updatedAt
+    type: object
+info:
+  contact: {}
+  title: Formatio API
+  version: "1.0"
+paths:
+  /api/providers/github:
+    get:
+      operationId: create-app
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.GithubApp'
+  /api/providers/github/apps:
+    get:
+      operationId: list-apps
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GithubApp'
+            type: array
+swagger: "2.0"
