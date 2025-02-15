@@ -35,8 +35,8 @@ axiosInstance.interceptors.response.use(
 function redirectToLogin() {
 	window.location.href = `/login/?next=${window.location.pathname}`;
 
-	localStorage.deleteItem(ACCESS_TOKEN_KEY);
-	localStorage.deleteItem(REFRESH_TOKEN_KEY);
+	localStorage.removeItem(ACCESS_TOKEN_KEY);
+	localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 async function refreshAuthToken(errorConfig: AxiosRequestConfig) {
