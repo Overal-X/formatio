@@ -50,12 +50,17 @@
 					<span>{github_app.appName}</span>
 
 					<div class="flex items-center gap-x-2">
-						<button type="button" class="bg-black p-2 text-xs text-white hover:cursor-pointer"
-							>Update</button
+						<a
+							href={`https://github.com/apps/${github_app.appName.toLowerCase()}/installations/new/`}
+							target="_blank"
 						>
-						<button type="button" class="bg-red-800 p-2 text-xs text-white hover:cursor-pointer"
-							>Delete</button
-						>
+							<button type="button" class="bg-black p-2 text-xs text-white hover:cursor-pointer"
+								>Update</button
+							>
+							<button type="button" class="bg-red-800 p-2 text-xs text-white hover:cursor-pointer"
+								>Delete</button
+							>
+						</a>
 					</div>
 				</div>
 			{/each}
