@@ -7,6 +7,7 @@ import (
 	"github.com/overal-x/formatio/config"
 	"github.com/overal-x/formatio/handlers"
 	"github.com/overal-x/formatio/models"
+	"github.com/overal-x/formatio/services"
 )
 
 // @title Formatio API
@@ -24,13 +25,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	githubHandler := handlers.NewGithubHandler(db)
+	githubService := services.NewGithubService()
+	githubHandler := handlers.NewGithubHandler(db, githubService)
 
 	srv := config.NewServer()
 
-	srv.GET("/api/providers/github/", githubHandler.CreateApp)
-	srv.GET("/api/providers/github/apps/", githubHandler.ListApps)
-	srv.POST("/api/deploy/github/", githubHandler.DeployRepo)
+	srv.GET("/api/github/", githubHandler.CreateApp)
+	srv.GET("/api/github/apps/", githubHandler.ListApps)
+	srv.GET("/api/github/installations/:appId/", githubHandler.ListInstallations)
+	srv.GET("/api/github/repos/:installationId/", githubHandler.ListRepo)
+	srv.POST("/api/github/deploy/", githubHandler.DeployRepo)
 
 	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", env.PORT)))
 }

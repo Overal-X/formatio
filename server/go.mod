@@ -3,6 +3,7 @@ module github.com/overal-x/formatio
 go 1.23.4
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/go-github/v69 v69.1.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2

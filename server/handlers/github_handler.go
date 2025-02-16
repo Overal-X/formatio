@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/google/go-github/v69/github"
 	"github.com/labstack/echo/v4"
 	"github.com/overal-x/formatio/models"
+	"github.com/overal-x/formatio/services"
 	"github.com/overal-x/formatio/utils"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
@@ -14,10 +17,13 @@ type IGithubHandler interface {
 	CreateApp(c echo.Context) error
 	ListApps(c echo.Context) error
 	DeployRepo(c echo.Context) error
+	ListInstallations(c echo.Context) error
+	ListRepo(c echo.Context) error
 }
 
 type GithubHandler struct {
-	db *gorm.DB
+	db            *gorm.DB
+	githubService services.IGithubService
 }
 
 // @ID create-app
@@ -80,6 +86,55 @@ func (g *GithubHandler) DeployRepo(c echo.Context) error {
 	return c.JSON(200, apps)
 }
 
-func NewGithubHandler(db *gorm.DB) IGithubHandler {
-	return &GithubHandler{db: db}
+func (g *GithubHandler) ListInstallations(c echo.Context) error {
+	app := models.GithubApp{}
+	err := g.db.First(&app).Where("id = ?", c.Param("appId")).Error
+	if err != nil {
+		return utils.HandleGormError(c, err)
+	}
+
+	appToken, err := g.githubService.GetAppToken(services.GetAppTokenArgs{
+		ClientId:   app.ClientId,
+		PrivateKey: app.PrivateKey,
+	})
+	if err != nil {
+		return err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(*appToken)
+	installations, _, err := client.Apps.ListInstallations(context.Background(), &github.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, installations)
+}
+
+func (g *GithubHandler) ListRepo(c echo.Context) error {
+	app := models.GithubApp{}
+	err := g.db.First(&app, c.Param("id")).Error
+	if err != nil {
+		return utils.HandleGormError(c, err)
+	}
+
+	appToken, err := g.githubService.GetInstallationToken(services.GetInstallationTokenArgs{
+		InstallationId: int64(lo.Must(strconv.Atoi(c.Param("installationId")))),
+		ClientId:       app.ClientId,
+		PrivateKey:     app.PrivateKey,
+	})
+	if err != nil {
+		return err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(*appToken)
+	installations, _, err := client.Apps.ListRepos(context.Background(), &github.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, installations)
+}
+
+func NewGithubHandler(db *gorm.DB, githubService services.IGithubService) IGithubHandler {
+	return &GithubHandler{db: db, githubService: githubService}
 }
