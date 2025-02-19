@@ -7,6 +7,7 @@ require (
 	github.com/google/go-github/v69 v69.1.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/samber/lo v1.49.1
 	github.com/spf13/viper v1.19.0
 	github.com/swaggo/swag v1.16.4

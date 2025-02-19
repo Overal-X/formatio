@@ -1,0 +1,185 @@
+package services
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/overal-x/formatio/models"
+	"github.com/overal-x/formatio/types"
+	"github.com/samber/lo"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
+
+const (
+	GITHUB_DEPLOYMENT_QUEUE     = "GITHUB_DEPLOYMENT_QUEUE"
+	GITHUB_DEPLOYMENT_LOG_QUEUE = "GITHUB_DEPLOYMENT_LOG_QUEUE"
+)
+
+type IProjectService interface {
+	List(types.ListProjectArgs) ([]models.Project, error)
+	Create(types.CreateProjectArgs) (*models.Project, error)
+	Get(string) (*models.Project, error)
+	Update(types.UpdateProjectArgs) (*models.Project, error)
+	Delete(string) error
+	Deploy(types.DeployArgs) error       // publisher
+	HandleDeploy(types.DeployArgs) error // subscriber
+}
+
+type ProjectService struct {
+	db *gorm.DB
+
+	nixpacksService INixpacksService
+	execService     IExecService
+	githubServices  IGithubService
+	rabbitmqService IRabbitMQService
+}
+
+func (p *ProjectService) List(args types.ListProjectArgs) (projects []models.Project, err error) {
+	err = p.db.Find(&projects).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return projects, nil
+}
+
+func (p *ProjectService) Create(args types.CreateProjectArgs) (*models.Project, error) {
+	project := args.ToModel()
+	err := p.db.Create(&project).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if len(args.Variables) > 0 {
+		environment := models.Environment{
+			ProjectId: project.Id,
+			Variables: args.Variables,
+		}
+		err = p.db.Create(&environment).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &project, err
+}
+
+func (p *ProjectService) Get(id string) (*models.Project, error) {
+	project := models.Project{}
+	err := p.db.Where("id = ?", id).First(&project).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &project, nil
+}
+
+func (p *ProjectService) Update(args types.UpdateProjectArgs) (*models.Project, error) {
+	project := args.ToModel()
+	err := p.db.Where("id = ?", args.Id).Clauses(clause.Returning{}).Updates(&project).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &project, nil
+}
+
+func (p *ProjectService) Delete(id string) error {
+	err := p.db.Where("id = ?", id).Delete(&models.Project{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *ProjectService) Deploy(args types.DeployArgs) error {
+	payload, err := json.Marshal(&args)
+	if err != nil {
+		return err
+	}
+
+	return p.rabbitmqService.Publish(PublishArgs{
+		Queue:   GITHUB_DEPLOYMENT_QUEUE,
+		Content: string(payload),
+	})
+}
+
+func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
+	project := models.Project{}
+	err := p.db.Where("id = ?", args.ProjectId).First(&project).Error
+	if err != nil {
+		return err
+	}
+
+	app := models.GithubApp{}
+	err = p.db.Where("id = ?", project.AppId).First(&app).Error
+	if err != nil {
+		return err
+	}
+
+	cloneUrl, err := p.githubServices.GetRepoCloneUrl(GetRepoCloneUrlArgs{
+		RepoId:         project.RepoId,
+		ClientId:       app.ClientId,
+		PrivateKey:     app.PrivateKey,
+		InstallationId: int64(lo.Must(strconv.Atoi(project.InstallationId))),
+	})
+	if err != nil {
+		return err
+	}
+
+	project.Name = strings.ToLower(strings.ReplaceAll(project.Name, " ", "-"))
+	projectDir := fmt.Sprintf("_tmp/%s-%s", project.Name, lo.RandomString(6, lo.LettersCharset))
+
+	err = p.execService.Execute(ExecuteArgs{
+		Command: fmt.Sprintf("git clone %s %s", *cloneUrl, projectDir),
+		OutputCallback: func(s string) {
+			fmt.Println("> ", s)
+		},
+		ErrorCallback: func(s string) {
+			fmt.Println("x ", s)
+		},
+	})
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(projectDir)
+
+	err = p.nixpacksService.Build(BuildArgs{
+		AppName:      project.Name,
+		AppDirectory: projectDir,
+		Env:          &map[string]string{},
+		Callback: func(out *string, err error) {
+			if err != nil {
+				fmt.Println("x ", err)
+			} else {
+				fmt.Println("> ", *out)
+			}
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewProjectService(
+	db *gorm.DB,
+	execService IExecService,
+	nixpacksService INixpacksService,
+	githubService IGithubService,
+	rabbitmqService IRabbitMQService,
+) IProjectService {
+	return &ProjectService{
+		db:              db,
+		execService:     execService,
+		nixpacksService: nixpacksService,
+		githubServices:  githubService,
+		rabbitmqService: rabbitmqService,
+	}
+}

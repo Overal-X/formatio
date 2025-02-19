@@ -2,38 +2,177 @@ basePath: /
 definitions:
   models.GithubApp:
     properties:
-      appId:
+      app_id:
         type: integer
-      appName:
+      app_name:
         type: string
-      createdAt:
+      created_at:
         type: string
       id:
         type: string
-      ownerId:
+      owner_id:
         type: integer
-      ownerType:
+      owner_type:
         type: string
-      ownerUsername:
+      owner_username:
         type: string
-      updatedAt:
+      updated_at:
         type: string
     required:
-    - appId
-    - appName
-    - createdAt
+    - app_id
+    - app_name
+    - created_at
     - id
-    - ownerId
-    - ownerType
-    - ownerUsername
-    - updatedAt
+    - owner_id
+    - owner_type
+    - owner_username
+    - updated_at
+    type: object
+  models.Project:
+    properties:
+      app_id:
+        type: string
+      auto_deploy:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      installation_id:
+        type: string
+      name:
+        type: string
+      repo_id:
+        type: integer
+      require_approval:
+        type: boolean
+      updated_at:
+        type: string
+    required:
+    - app_id
+    - auto_deploy
+    - created_at
+    - description
+    - id
+    - installation_id
+    - name
+    - repo_id
+    - require_approval
+    - updated_at
+    type: object
+  types.CreateProjectArgs:
+    properties:
+      app_id:
+        type: string
+      auto_deploy:
+        type: boolean
+      description:
+        type: string
+      installation_id:
+        type: string
+      name:
+        type: string
+      repo_id:
+        type: string
+      require_approval:
+        type: boolean
+      variables:
+        type: string
+    required:
+    - app_id
+    - auto_deploy
+    - description
+    - installation_id
+    - name
+    - repo_id
+    - require_approval
+    - variables
+    type: object
+  types.Installation:
+    properties:
+      app_id:
+        type: integer
+      app_name:
+        type: string
+      app_slug:
+        type: string
+      events:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      owner_id:
+        type: integer
+      owner_type:
+        type: string
+      owner_username:
+        type: string
+    required:
+    - app_id
+    - app_name
+    - app_slug
+    - events
+    - id
+    - owner_id
+    - owner_type
+    - owner_username
+    type: object
+  types.Repo:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      owner_type:
+        type: string
+      owner_username:
+        type: string
+    required:
+    - id
+    - name
+    - owner_id
+    - owner_type
+    - owner_username
+    type: object
+  types.UpdateProjectArgs:
+    properties:
+      app_id:
+        type: string
+      auto_deploy:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      installation_id:
+        type: string
+      name:
+        type: string
+      repo_id:
+        type: string
+      require_approval:
+        type: boolean
+    required:
+    - app_id
+    - auto_deploy
+    - description
+    - id
+    - installation_id
+    - name
+    - repo_id
+    - require_approval
     type: object
 info:
   contact: {}
   title: Formatio API
   version: "1.0"
 paths:
-  /api/providers/github:
+  /api/github:
     get:
       operationId: create-app
       responses:
@@ -41,7 +180,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.GithubApp'
-  /api/providers/github/apps:
+  /api/github/apps:
     get:
       operationId: list-apps
       responses:
@@ -51,4 +190,109 @@ paths:
             items:
               $ref: '#/definitions/models.GithubApp'
             type: array
+  /api/github/installations/{appId}:
+    get:
+      operationId: list-installations
+      parameters:
+      - description: App Id
+        in: path
+        name: appId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Installation'
+            type: array
+  /api/github/repos/{appId}/{installationId}:
+    get:
+      operationId: list-repo
+      parameters:
+      - description: App Id
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Installation Id
+        in: path
+        name: installationId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Repo'
+            type: array
+  /api/projects:
+    get:
+      operationId: list-projects
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            items:
+              $ref: '#/definitions/models.Project'
+            type: array
+    post:
+      operationId: create-project
+      parameters:
+      - description: Project
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateProjectArgs'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Project'
+  /api/projects/{id}:
+    delete:
+      operationId: delete-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+    get:
+      operationId: get-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+    put:
+      operationId: update-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateProjectArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
 swagger: "2.0"

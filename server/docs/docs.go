@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/providers/github": {
+        "/api/github": {
             "get": {
                 "operationId": "create-app",
                 "responses": {
@@ -28,7 +28,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/providers/github/apps": {
+        "/api/github/apps": {
             "get": {
                 "operationId": "list-apps",
                 "responses": {
@@ -43,45 +43,402 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/github/installations/{appId}": {
+            "get": {
+                "operationId": "list-installations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "App Id",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Installation"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/github/repos/{appId}/{installationId}": {
+            "get": {
+                "operationId": "list-repo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "App Id",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Installation Id",
+                        "name": "installationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Repo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/projects": {
+            "get": {
+                "operationId": "list-projects",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Project"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "create-project",
+                "parameters": [
+                    {
+                        "description": "Project",
+                        "name": "project",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateProjectArgs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Project"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/projects/{id}": {
+            "get": {
+                "operationId": "get-project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Project"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "update-project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Project",
+                        "name": "project",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateProjectArgs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Project"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "delete-project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "models.GithubApp": {
             "type": "object",
             "required": [
-                "appId",
-                "appName",
-                "createdAt",
+                "app_id",
+                "app_name",
+                "created_at",
                 "id",
-                "ownerId",
-                "ownerType",
-                "ownerUsername",
-                "updatedAt"
+                "owner_id",
+                "owner_type",
+                "owner_username",
+                "updated_at"
             ],
             "properties": {
-                "appId": {
+                "app_id": {
                     "type": "integer"
                 },
-                "appName": {
+                "app_name": {
                     "type": "string"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "ownerId": {
+                "owner_id": {
                     "type": "integer"
                 },
-                "ownerType": {
+                "owner_type": {
                     "type": "string"
                 },
-                "ownerUsername": {
+                "owner_username": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Project": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "auto_deploy",
+                "created_at",
+                "description",
+                "id",
+                "installation_id",
+                "name",
+                "repo_id",
+                "require_approval",
+                "updated_at"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "string"
+                },
+                "auto_deploy": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "installation_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "repo_id": {
+                    "type": "integer"
+                },
+                "require_approval": {
+                    "type": "boolean"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.CreateProjectArgs": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "auto_deploy",
+                "description",
+                "installation_id",
+                "name",
+                "repo_id",
+                "require_approval",
+                "variables"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "string"
+                },
+                "auto_deploy": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "installation_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "repo_id": {
+                    "type": "string"
+                },
+                "require_approval": {
+                    "type": "boolean"
+                },
+                "variables": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Installation": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "app_name",
+                "app_slug",
+                "events",
+                "id",
+                "owner_id",
+                "owner_type",
+                "owner_username"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "app_name": {
+                    "type": "string"
+                },
+                "app_slug": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "owner_type": {
+                    "type": "string"
+                },
+                "owner_username": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Repo": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "owner_id",
+                "owner_type",
+                "owner_username"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "owner_type": {
+                    "type": "string"
+                },
+                "owner_username": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.UpdateProjectArgs": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "auto_deploy",
+                "description",
+                "id",
+                "installation_id",
+                "name",
+                "repo_id",
+                "require_approval"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "string"
+                },
+                "auto_deploy": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "installation_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "repo_id": {
+                    "type": "string"
+                },
+                "require_approval": {
+                    "type": "boolean"
                 }
             }
         }

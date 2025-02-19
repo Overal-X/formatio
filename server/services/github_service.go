@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -9,15 +10,40 @@ import (
 )
 
 type IGithubService interface {
-	CloneRepo() error
+	GetRepoCloneUrl(GetRepoCloneUrlArgs) (*string, error)
 	GetAppToken(GetAppTokenArgs) (*string, error)
 	GetInstallationToken(GetInstallationTokenArgs) (*string, error)
 }
 
 type GithubService struct{}
 
-func (g *GithubService) CloneRepo() error {
-	panic("unimplemented")
+type GetRepoCloneUrlArgs struct {
+	RepoId         int64
+	Directory      string
+	ClientId       string
+	PrivateKey     string
+	InstallationId int64
+}
+
+func (g *GithubService) GetRepoCloneUrl(args GetRepoCloneUrlArgs) (*string, error) {
+	token, err := g.GetInstallationToken(GetInstallationTokenArgs{
+		ClientId:       args.ClientId,
+		PrivateKey:     args.PrivateKey,
+		InstallationId: args.InstallationId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(*token)
+	repo, _, err := client.Repositories.GetByID(context.Background(), args.RepoId)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("https://%s:%s@github.com/%s.git", "x-access-token", *token, repo.GetFullName())
+
+	return &url, nil
 }
 
 type GetAppTokenArgs struct {

@@ -7,8 +7,9 @@ import (
 )
 
 type Env struct {
-	DATABASE_URL string
 	PORT         int
+	DATABASE_URL string
+	RABBITMQ_URL string
 }
 
 func NewEnv() *Env {
@@ -26,5 +27,6 @@ func NewEnv() *Env {
 	return &Env{
 		DATABASE_URL: viper.GetString("DATABASE_URL"),
 		PORT:         viper.GetInt("PORT"),
+		RABBITMQ_URL: viper.GetString("RABBITMQ_URL"),
 	}
 }

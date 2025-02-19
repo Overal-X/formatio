@@ -9,6 +9,8 @@ type Project struct {
 
 	Name            string `json:"name"`
 	Description     string `json:"description"`
+	AppId           string `json:"app_id"`
+	InstallationId  string `json:"installation_id"`
 	RepoId          int64  `json:"repo_id"`
 	AutoDeploy      bool   `json:"auto_deploy" gorm:"default:true"`
 	RequireApproval bool   `json:"require_approval" gorm:"default:false"`

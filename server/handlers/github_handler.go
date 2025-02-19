@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/overal-x/formatio/models"
 	"github.com/overal-x/formatio/services"
+	"github.com/overal-x/formatio/types"
 	"github.com/overal-x/formatio/utils"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
@@ -28,7 +29,7 @@ type GithubHandler struct {
 
 // @ID create-app
 // @Success 201 {object} models.GithubApp
-// @Router /api/providers/github [get]
+// @Router /api/github [get]
 func (g *GithubHandler) CreateApp(c echo.Context) error {
 	// authId := c.QueryParam("authId")
 	next := c.QueryParam("next")
@@ -65,7 +66,7 @@ func (g *GithubHandler) CreateApp(c echo.Context) error {
 
 // @ID list-apps
 // @Success 200 {array} models.GithubApp
-// @Router /api/providers/github/apps [get]
+// @Router /api/github/apps [get]
 func (g *GithubHandler) ListApps(c echo.Context) error {
 	apps := []models.GithubApp{}
 	err := g.db.Find(&apps).Error
@@ -86,6 +87,10 @@ func (g *GithubHandler) DeployRepo(c echo.Context) error {
 	return c.JSON(200, apps)
 }
 
+// @ID list-installations
+// @Success 200 {array} types.Installation
+// @Param	appId path string	true "App Id"
+// @Router /api/github/installations/{appId} [get]
 func (g *GithubHandler) ListInstallations(c echo.Context) error {
 	app := models.GithubApp{}
 	err := g.db.First(&app).Where("id = ?", c.Param("appId")).Error
@@ -107,18 +112,36 @@ func (g *GithubHandler) ListInstallations(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, installations)
+	return c.JSON(200, lo.Map(installations, func(installation *github.Installation, _ int) types.Installation {
+		return types.Installation{
+			Id:            installation.ID,
+			AppId:         *installation.AppID,
+			AppName:       app.AppName,
+			AppSlug:       *installation.AppSlug,
+			OwnerId:       *installation.Account.ID,
+			OwnerUsername: *installation.Account.Login,
+			OwnerType:     *installation.Account.Type,
+			Events:        installation.Events,
+		}
+	}))
 }
 
+// @ID list-repo
+// @Success 200 {array} types.Repo
+// @Param	appId path string	true "App Id"
+// @Param	installationId path string	true "Installation Id"
+// @Router /api/github/repos/{appId}/{installationId} [get]
 func (g *GithubHandler) ListRepo(c echo.Context) error {
 	app := models.GithubApp{}
-	err := g.db.First(&app, c.Param("id")).Error
+	err := g.db.First(&app).Where("id = ?", c.Param("appId")).Error
 	if err != nil {
 		return utils.HandleGormError(c, err)
 	}
 
+	installationId := int64(lo.Must(strconv.Atoi(c.Param("installationId"))))
+
 	appToken, err := g.githubService.GetInstallationToken(services.GetInstallationTokenArgs{
-		InstallationId: int64(lo.Must(strconv.Atoi(c.Param("installationId")))),
+		InstallationId: installationId,
 		ClientId:       app.ClientId,
 		PrivateKey:     app.PrivateKey,
 	})
@@ -127,12 +150,20 @@ func (g *GithubHandler) ListRepo(c echo.Context) error {
 	}
 
 	client := github.NewClient(nil).WithAuthToken(*appToken)
-	installations, _, err := client.Apps.ListRepos(context.Background(), &github.ListOptions{})
+	repos, _, err := client.Apps.ListRepos(context.Background(), &github.ListOptions{})
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(200, installations)
+	return c.JSON(200, lo.Map(repos.Repositories, func(repo *github.Repository, _ int) types.Repo {
+		return types.Repo{
+			Id:            *repo.ID,
+			Name:          *repo.Name,
+			OwnerId:       *repo.Owner.ID,
+			OwnerUsername: *repo.Owner.Login,
+			OwnerType:     *repo.Owner.Type,
+		}
+	}))
 }
 
 func NewGithubHandler(db *gorm.DB, githubService services.IGithubService) IGithubHandler {
