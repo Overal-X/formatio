@@ -149,6 +149,22 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 	}
 	defer os.RemoveAll(projectDir)
 
+	if args.CommitSha != "" {
+		err = p.execService.Execute(ExecuteArgs{
+			Directory: projectDir,
+			Command:   fmt.Sprintf("git checkout %s", args.CommitSha),
+			OutputCallback: func(s string) {
+				fmt.Println("> ", s)
+			},
+			ErrorCallback: func(s string) {
+				fmt.Println("x ", s)
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	err = p.nixpacksService.Build(BuildArgs{
 		AppName:      project.Name,
 		AppDirectory: projectDir,
