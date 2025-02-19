@@ -1,4 +1,4 @@
-export type ModelsGithubApp = {
+export type TypesInstallation = {
 	/**
 	 * @type integer
 	 */
@@ -10,11 +10,15 @@ export type ModelsGithubApp = {
 	/**
 	 * @type string
 	 */
-	created_at: string;
+	app_slug: string;
 	/**
-	 * @type string
+	 * @type array
 	 */
-	id: string;
+	events: string[];
+	/**
+	 * @type integer
+	 */
+	id: number;
 	/**
 	 * @type integer
 	 */
@@ -27,8 +31,4 @@ export type ModelsGithubApp = {
 	 * @type string
 	 */
 	owner_username: string;
-	/**
-	 * @type string
-	 */
-	updated_at: string;
 };

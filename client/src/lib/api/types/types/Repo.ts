@@ -1,20 +1,12 @@
-export type ModelsGithubApp = {
+export type TypesRepo = {
 	/**
 	 * @type integer
 	 */
-	app_id: number;
+	id: number;
 	/**
 	 * @type string
 	 */
-	app_name: string;
-	/**
-	 * @type string
-	 */
-	created_at: string;
-	/**
-	 * @type string
-	 */
-	id: string;
+	name: string;
 	/**
 	 * @type integer
 	 */
@@ -27,8 +19,4 @@ export type ModelsGithubApp = {
 	 * @type string
 	 */
 	owner_username: string;
-	/**
-	 * @type string
-	 */
-	updated_at: string;
 };

@@ -2,23 +2,23 @@
 	"properties": {
 		"app_id": { "type": "integer" },
 		"app_name": { "type": "string" },
-		"created_at": { "type": "string" },
-		"id": { "type": "string" },
+		"app_slug": { "type": "string" },
+		"events": { "items": { "type": "string" }, "type": "array" },
+		"id": { "type": "integer" },
 		"owner_id": { "type": "integer" },
 		"owner_type": { "type": "string" },
-		"owner_username": { "type": "string" },
-		"updated_at": { "type": "string" }
+		"owner_username": { "type": "string" }
 	},
 	"required": [
 		"app_id",
 		"app_name",
-		"created_at",
+		"app_slug",
+		"events",
 		"id",
 		"owner_id",
 		"owner_type",
-		"owner_username",
-		"updated_at"
+		"owner_username"
 	],
 	"type": "object",
-	"x-readme-ref-name": "models.GithubApp"
+	"x-readme-ref-name": "types.Installation"
 }

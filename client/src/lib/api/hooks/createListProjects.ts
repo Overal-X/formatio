@@ -1,57 +1,59 @@
 import client from '$lib/api/client';
 import type { RequestConfig, ResponseErrorConfig } from '$lib/api/client';
-import type { CreateAppQueryResponse } from '../types/CreateApp.ts';
+import type { ListProjectsQueryResponse } from '../types/ListProjects.ts';
 import type { QueryKey, CreateBaseQueryOptions, CreateQueryResult } from '@tanstack/svelte-query';
 import { queryOptions, createQuery } from '@tanstack/svelte-query';
 
-export const createAppQueryKey = () => [{ url: '/api/github' }] as const;
+export const listProjectsQueryKey = () => [{ url: '/api/projects' }] as const;
 
-export type CreateAppQueryKey = ReturnType<typeof createAppQueryKey>;
+export type ListProjectsQueryKey = ReturnType<typeof listProjectsQueryKey>;
 
 /**
- * {@link /api/github}
+ * {@link /api/projects}
  */
-export async function createApp(config: Partial<RequestConfig> & { client?: typeof client } = {}) {
+export async function listProjects(
+	config: Partial<RequestConfig> & { client?: typeof client } = {}
+) {
 	const { client: request = client, ...requestConfig } = config;
 
-	const res = await request<CreateAppQueryResponse, ResponseErrorConfig<Error>, unknown>({
+	const res = await request<ListProjectsQueryResponse, ResponseErrorConfig<Error>, unknown>({
 		method: 'GET',
-		url: `/api/github`,
+		url: `/api/projects`,
 		...requestConfig
 	});
 	return res.data;
 }
 
-export function createAppQueryOptions(
+export function listProjectsQueryOptions(
 	config: Partial<RequestConfig> & { client?: typeof client } = {}
 ) {
-	const queryKey = createAppQueryKey();
+	const queryKey = listProjectsQueryKey();
 	return queryOptions<
-		CreateAppQueryResponse,
+		ListProjectsQueryResponse,
 		ResponseErrorConfig<Error>,
-		CreateAppQueryResponse,
+		ListProjectsQueryResponse,
 		typeof queryKey
 	>({
 		queryKey,
 		queryFn: async ({ signal }) => {
 			config.signal = signal;
-			return createApp(config);
+			return listProjects(config);
 		}
 	});
 }
 
 /**
- * {@link /api/github}
+ * {@link /api/projects}
  */
-export function createCreateApp<
-	TData = CreateAppQueryResponse,
-	TQueryData = CreateAppQueryResponse,
-	TQueryKey extends QueryKey = CreateAppQueryKey
+export function createListProjects<
+	TData = ListProjectsQueryResponse,
+	TQueryData = ListProjectsQueryResponse,
+	TQueryKey extends QueryKey = ListProjectsQueryKey
 >(
 	options: {
 		query?: Partial<
 			CreateBaseQueryOptions<
-				CreateAppQueryResponse,
+				ListProjectsQueryResponse,
 				ResponseErrorConfig<Error>,
 				TData,
 				TQueryData,
@@ -62,10 +64,10 @@ export function createCreateApp<
 	} = {}
 ) {
 	const { query: queryOptions, client: config = {} } = options ?? {};
-	const queryKey = queryOptions?.queryKey ?? createAppQueryKey();
+	const queryKey = queryOptions?.queryKey ?? listProjectsQueryKey();
 
 	const query = createQuery({
-		...(createAppQueryOptions(config) as unknown as CreateBaseQueryOptions),
+		...(listProjectsQueryOptions(config) as unknown as CreateBaseQueryOptions),
 		queryKey,
 		...(queryOptions as unknown as Omit<CreateBaseQueryOptions, 'queryKey'>)
 	}) as CreateQueryResult<TData, ResponseErrorConfig<Error>> & { queryKey: TQueryKey };
