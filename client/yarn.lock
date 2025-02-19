@@ -323,6 +323,11 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.4.1.tgz#9a96ce501bc62df46c4031fbd970e3cc6b10f07b"
   integrity sha512-c7hNEllBlenFTHBky65mhq8WD2kbN9Q6gk0bTk8lSBvc554jpXSkST1iePudpt7+A/AQvuHs9EMqjHDXMY1lrA==
 
+"@icons-pack/svelte-simple-icons@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@icons-pack/svelte-simple-icons/-/svelte-simple-icons-4.0.2.tgz#f9cf8a7c178f8e43b9e0dac7cb702c093c19186f"
+  integrity sha512-wtxsxSv2mSdpbSQmdI+7p5M9scgBQiJhmhHwtWBvey5n5cHNSvjxNkYFx14jR1RRHsVpTI7/6S1oFDi9Sxp1Ew==
+
 "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.8"
   resolved "https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.8.tgz#4f0e06362e01362f823d348f1872b08f666d8142"
@@ -917,6 +922,19 @@
   version "5.66.0"
   resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-5.66.0.tgz#163f670b3b4e3b3cdbff6698ad44b2edfcaed185"
   integrity sha512-J+JeBtthiKxrpzUu7rfIPDzhscXF2p5zE/hVdrqkACBP8Yu0M96mwJ5m/8cPPYQE9aRNvXztXHlNwIh4FEeMZw==
+
+"@tanstack/query-devtools@5.65.0":
+  version "5.65.0"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-devtools/-/query-devtools-5.65.0.tgz#37da5e911543b4f6d98b9a04369eab0de6044ba1"
+  integrity sha512-g5y7zc07U9D3esMdqUfTEVu9kMHoIaVBsD0+M3LPdAdD710RpTcLiNvJY1JkYXqkq9+NV+CQoemVNpQPBXVsJg==
+
+"@tanstack/svelte-query-devtools@^5.66.3":
+  version "5.66.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/svelte-query-devtools/-/svelte-query-devtools-5.66.3.tgz#cb4497cfec9ab972bb03b16a021bffa5a2269e2f"
+  integrity sha512-B7GmoPLEsIA1l2Sx/IMxV9wB6Obb9r5vAjO6aLmp3+So0Pnd/OW4euNUD5O6IwRXsnncF65CXYM4dGbYb3TSkA==
+  dependencies:
+    "@tanstack/query-devtools" "5.65.0"
+    esm-env "^1.2.1"
 
 "@tanstack/svelte-query@^5.66.0":
   version "5.66.0"
@@ -2488,6 +2506,11 @@ lru-queue@^0.1.0:
   integrity sha512-BpdYkt9EvGl8OfWHDQPISVpcl5xZthb+XPsbELj5AQXxIC8IriDZIQYjBJPEm5rS420sjZ0TLEzRcq5KdBhYrQ==
   dependencies:
     es5-ext "~0.10.2"
+
+lucide-svelte@^0.475.0:
+  version "0.475.0"
+  resolved "https://registry.yarnpkg.com/lucide-svelte/-/lucide-svelte-0.475.0.tgz#a1232904119612eb752ca84c6d5747b4833c7819"
+  integrity sha512-N5+hFTPHaZe9HhqJDxxxODfYuOmI6v+JIowzERcea/uxytN/JZlehVTcINBNp8wMo7l6ov1Jf5srrDbkI/WsJg==
 
 lz-string@^1.5.0:
   version "1.5.0"

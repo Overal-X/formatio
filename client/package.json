@@ -27,6 +27,7 @@
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.0.0",
+		"@tanstack/svelte-query-devtools": "^5.66.3",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
 		"eslint": "^9.18.0",
@@ -46,9 +47,11 @@
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
+		"@icons-pack/svelte-simple-icons": "^4.0.2",
 		"@kubb/plugin-svelte-query": "^3.5.11",
 		"@tanstack/svelte-query": "^5.66.0",
 		"axios": "^1.7.9",
-		"dayjs": "^1.11.13"
+		"dayjs": "^1.11.13",
+		"lucide-svelte": "^0.475.0"
 	}
 }
