@@ -2,15 +2,15 @@ export type ModelsGithubApp = {
 	/**
 	 * @type integer
 	 */
-	appId: number;
+	app_id: number;
 	/**
 	 * @type string
 	 */
-	appName: string;
+	app_name: string;
 	/**
 	 * @type string
 	 */
-	createdAt: string;
+	created_at: string;
 	/**
 	 * @type string
 	 */
@@ -18,17 +18,17 @@ export type ModelsGithubApp = {
 	/**
 	 * @type integer
 	 */
-	ownerId: number;
+	owner_id: number;
 	/**
 	 * @type string
 	 */
-	ownerType: string;
+	owner_type: string;
 	/**
 	 * @type string
 	 */
-	ownerUsername: string;
+	owner_username: string;
 	/**
 	 * @type string
 	 */
-	updatedAt: string;
+	updated_at: string;
 };

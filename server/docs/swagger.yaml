@@ -1,39 +1,363 @@
 basePath: /
 definitions:
-  models.GithubApp:
+  models.Deployment:
     properties:
-      appId:
-        type: integer
-      appName:
+      created_at:
         type: string
-      createdAt:
+      environment:
+        $ref: '#/definitions/models.Environment'
+      environment_id:
         type: string
       id:
         type: string
-      ownerId:
-        type: integer
-      ownerType:
+      message:
         type: string
-      ownerUsername:
+      project:
+        $ref: '#/definitions/models.Project'
+      project_id:
         type: string
-      updatedAt:
+      status:
+        $ref: '#/definitions/models.DeploymentStatus'
+      updated_at:
         type: string
     required:
-    - appId
-    - appName
-    - createdAt
+    - created_at
+    - environment
+    - environment_id
     - id
-    - ownerId
-    - ownerType
-    - ownerUsername
-    - updatedAt
+    - message
+    - project
+    - project_id
+    - status
+    - updated_at
+    type: object
+  models.DeploymentLog:
+    properties:
+      created_at:
+        type: string
+      deployment:
+        $ref: '#/definitions/models.Deployment'
+      deployment_id:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - deployment
+    - deployment_id
+    - id
+    - message
+    - updated_at
+    type: object
+  models.DeploymentStatus:
+    enum:
+    - PENDING
+    - RUNNING
+    - SUCCESS
+    - FAILURE
+    type: string
+    x-enum-varnames:
+    - DeploymentStatusPending
+    - DeploymentStatusRunning
+    - DeploymentStatusSuccess
+    - DeploymentStatusFailure
+  models.Environment:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      project:
+        $ref: '#/definitions/models.Project'
+      project_id:
+        type: string
+      updated_at:
+        type: string
+      variables:
+        type: string
+    required:
+    - created_at
+    - id
+    - is_active
+    - name
+    - project
+    - project_id
+    - updated_at
+    - variables
+    type: object
+  models.GithubApp:
+    properties:
+      app_id:
+        type: integer
+      app_name:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      owner_id:
+        type: integer
+      owner_type:
+        type: string
+      owner_username:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - app_id
+    - app_name
+    - created_at
+    - id
+    - owner_id
+    - owner_type
+    - owner_username
+    - updated_at
+    type: object
+  models.Network:
+    properties:
+      created_at:
+        type: string
+      host_name:
+        type: string
+      id:
+        type: string
+      port:
+        type: integer
+      project:
+        $ref: '#/definitions/models.Project'
+      project_id:
+        type: string
+      target_id:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - host_name
+    - id
+    - port
+    - project
+    - project_id
+    - target_id
+    - updated_at
+    type: object
+  models.Project:
+    properties:
+      app_id:
+        type: string
+      auto_deploy:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      installation_id:
+        type: string
+      name:
+        type: string
+      repo_fullname:
+        type: string
+      repo_id:
+        type: integer
+      require_approval:
+        type: boolean
+      updated_at:
+        type: string
+    required:
+    - app_id
+    - auto_deploy
+    - created_at
+    - description
+    - id
+    - installation_id
+    - name
+    - repo_fullname
+    - repo_id
+    - require_approval
+    - updated_at
+    type: object
+  types.CreateProjectArgs:
+    properties:
+      app_id:
+        type: string
+      auto_deploy:
+        type: boolean
+      description:
+        type: string
+      installation_id:
+        type: string
+      name:
+        type: string
+      repo_fullname:
+        type: string
+      repo_id:
+        type: string
+      require_approval:
+        type: boolean
+      variables:
+        type: string
+    required:
+    - app_id
+    - auto_deploy
+    - description
+    - installation_id
+    - name
+    - repo_fullname
+    - repo_id
+    - require_approval
+    - variables
+    type: object
+  types.DeployArgs:
+    properties:
+      commit_sha:
+        type: string
+    required:
+    - commit_sha
+    type: object
+  types.Installation:
+    properties:
+      app_id:
+        type: integer
+      app_name:
+        type: string
+      app_slug:
+        type: string
+      events:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      owner_id:
+        type: integer
+      owner_type:
+        type: string
+      owner_username:
+        type: string
+    required:
+    - app_id
+    - app_name
+    - app_slug
+    - events
+    - id
+    - owner_id
+    - owner_type
+    - owner_username
+    type: object
+  types.ListDeploymentLogsArgs:
+    type: object
+  types.ListDeploymentsArgs:
+    type: object
+  types.Repo:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      owner_type:
+        type: string
+      owner_username:
+        type: string
+    required:
+    - id
+    - name
+    - owner_id
+    - owner_type
+    - owner_username
+    type: object
+  types.UpdateProjectArgs:
+    properties:
+      app_id:
+        type: string
+      auto_deploy:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      installation_id:
+        type: string
+      name:
+        type: string
+      repo_fullname:
+        type: string
+      repo_id:
+        type: string
+      require_approval:
+        type: boolean
+    required:
+    - app_id
+    - auto_deploy
+    - description
+    - id
+    - installation_id
+    - name
+    - repo_fullname
+    - repo_id
+    - require_approval
     type: object
 info:
   contact: {}
   title: Formatio API
   version: "1.0"
 paths:
-  /api/providers/github:
+  /api/deployments/{deployment_id}/logs/:
+    get:
+      operationId: list-deployment-logs
+      parameters:
+      - description: Deployment Id
+        in: path
+        name: deployment_id
+        required: true
+        type: string
+      - description: List Deployments Logs Args
+        in: body
+        name: args
+        required: true
+        schema:
+          $ref: '#/definitions/types.ListDeploymentLogsArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DeploymentLog'
+            type: array
+  /api/deployments/{project_id}:
+    get:
+      operationId: list-deployments
+      parameters:
+      - description: Project Id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: List Deployments Args
+        in: body
+        name: args
+        required: true
+        schema:
+          $ref: '#/definitions/types.ListDeploymentsArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Deployment'
+            type: array
+  /api/github:
     get:
       operationId: create-app
       responses:
@@ -41,7 +365,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.GithubApp'
-  /api/providers/github/apps:
+  /api/github/apps:
     get:
       operationId: list-apps
       responses:
@@ -51,4 +375,143 @@ paths:
             items:
               $ref: '#/definitions/models.GithubApp'
             type: array
+  /api/github/installations/{app_id}:
+    get:
+      operationId: list-installations
+      parameters:
+      - description: App Id
+        in: path
+        name: app_id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Installation'
+            type: array
+  /api/github/repos/{app_id}/{installation_id}:
+    get:
+      operationId: list-repo
+      parameters:
+      - description: App Id
+        in: path
+        name: app_id
+        required: true
+        type: string
+      - description: Installation Id
+        in: path
+        name: installation_id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Repo'
+            type: array
+  /api/projects:
+    get:
+      operationId: list-projects
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            items:
+              $ref: '#/definitions/models.Project'
+            type: array
+    post:
+      operationId: create-project
+      parameters:
+      - description: Project
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateProjectArgs'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Project'
+  /api/projects/{id}:
+    delete:
+      operationId: delete-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+    get:
+      operationId: get-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+    put:
+      operationId: update-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateProjectArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+  /api/projects/{id}/deploy:
+    post:
+      operationId: deploy-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Deploy Args
+        in: body
+        name: args
+        required: true
+        schema:
+          $ref: '#/definitions/types.DeployArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+  /api/projects/{id}/network:
+    get:
+      operationId: get-network
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Network'
 swagger: "2.0"

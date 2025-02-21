@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { createListApps } from '$lib/api';
 	import dayjs from 'dayjs';
@@ -13,16 +14,15 @@
 			? `https://github.com/organizations/${organization}/settings/apps/new?state=gh_init:${auth_id}`
 			: `https://github.com/settings/apps/new?state=gh_init:${auth_id}`
 	);
+
 	const manifest = $derived(
 		JSON.stringify(
 			{
-				redirect_url: `${url}/api/providers/github?authId=${auth_id}&next=http://localhost:5173/providers/github/`,
-				name: `Formatio-${dayjs(new Date()).format('YYYY-MM-DD')}`,
+				redirect_url: `${url}/api/github/?authId=${auth_id}&next=${page.url.href}`,
+				name: `Formatio-${dayjs(new Date()).format('YYYY-MM-DD hh:mm')}`,
 				url,
-				hook_attributes: {
-					url: `${url}/api/deploy/github`
-				},
-				callback_urls: [`${url}/api/providers/github`],
+				hook_attributes: { url: `${url}/api/github/deploy/` },
+				callback_urls: [`${url}/api/github/`],
 				public: false,
 				request_oauth_on_install: true,
 				default_permissions: {
@@ -41,27 +41,28 @@
 	const github_apps_query = createListApps();
 </script>
 
-<div class="grid h-full w-full place-content-center">
+<div class="w-full">
 	{#if $github_apps_query.data}
-		<div class="w-lg space-y-2 py-4">
-			<h2 class="py-4">Connect Apps</h2>
+		<div class="w-lg space-y-4">
+			<h2>Connected Apps</h2>
 			{#each $github_apps_query.data as github_app}
 				<div class="group flex items-center justify-between border border-white p-4">
-					<span>{github_app.appName}</span>
+					<span>{github_app.app_name}</span>
 
 					<div class="flex items-center gap-x-2">
-						<button type="button" class="bg-black p-2 text-xs text-white hover:cursor-pointer"
-							>Update</button
+						<a
+							href={`https://github.com/apps/${github_app.app_name.toLowerCase()}/installations/new/`}
+							target="_blank"
 						>
-						<button type="button" class="bg-red-800 p-2 text-xs text-white hover:cursor-pointer"
-							>Delete</button
-						>
+							<button type="button" class="bg-black p-2 text-xs">Update</button>
+						</a>
+						<button type="button" class="bg-red-800 p-2 text-xs">Delete</button>
 					</div>
 				</div>
 			{/each}
 		</div>
 	{:else}
-		<p class="max-w-2xl text-sm text-gray-400">
+		<p class="text-sm text-gray-400">
 			To integrate your GitHub account with our services, you'll need to create and install a GitHub
 			app. This process is straightforward and only takes a few minutes. Click the "Create Github
 			App" button to get started.
@@ -88,7 +89,7 @@
 			<button
 				disabled={is_organization && organization.length < 1}
 				type="submit"
-				class="bg-black p-4 text-sm transition-all duration-150 hover:cursor-pointer"
+				class="disabled:opacity-50"
 			>
 				Create GitHub App
 			</button>

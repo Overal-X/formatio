@@ -1,107 +1,102 @@
 package services
 
 import (
-	"net/url"
-	"reflect"
+	"context"
+	"fmt"
+	"time"
 
-	"github.com/overal-x/formatio/types"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/go-github/v69/github"
+	"github.com/samber/do"
 )
 
 type IGithubService interface {
-	CreateApp(args types.CreateAppArgs) (*types.CreateAppResult, error)
-	InstallApp() error
-	UpdateAppAccess() error
-	UpdateAppWebhook() error
-	CloneRepo() error
+	GetRepoCloneUrl(GetRepoCloneUrlArgs) (*string, error)
+	GetAppToken(GetAppTokenArgs) (*string, error)
+	GetInstallationToken(GetInstallationTokenArgs) (*string, error)
 }
 
 type GithubService struct{}
 
-type KeyPair struct {
-	KeyID      string
+type GetRepoCloneUrlArgs struct {
+	RepoId         int64
+	Directory      string
+	ClientId       string
+	PrivateKey     string
+	InstallationId int64
+}
+
+func (g *GithubService) GetRepoCloneUrl(args GetRepoCloneUrlArgs) (*string, error) {
+	token, err := g.GetInstallationToken(GetInstallationTokenArgs{
+		ClientId:       args.ClientId,
+		PrivateKey:     args.PrivateKey,
+		InstallationId: args.InstallationId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(*token)
+	repo, _, err := client.Repositories.GetByID(context.Background(), args.RepoId)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("https://%s:%s@github.com/%s.git", "x-access-token", *token, repo.GetFullName())
+
+	return &url, nil
+}
+
+type GetAppTokenArgs struct {
+	ClientId   string
 	PrivateKey string
 }
 
-func (g *GithubService) GeneratePrivateKey(appId int64, token string) (*KeyPair, error) {
-	// ctx := context.Background()
-
-	// Create GitHub client with token
-	// ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	// tc := oauth2.NewClient(ctx, ts)
-	// client := github.NewClient(tc)
-
-	// Generate new private key using GitHub API
-	// key, _, err := client.Apps.CreatePrivateKey(ctx, appId)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to generate private key: %w", err)
-	// }
-
-	return &KeyPair{
-		KeyID:      "key.GetKeyID()",
-		PrivateKey: "key.GetKey()",
-	}, nil
-}
-
-func (g *GithubService) CreateApp(args types.CreateAppArgs) (*types.CreateAppResult, error) {
-	baseURL := "https://github.com/settings/apps/new"
-
-	// Create URL values
-	params := url.Values{}
-
-	// Use reflection to iterate over struct fields
-	v := reflect.ValueOf(args)
-	t := v.Type()
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		value := v.Field(i)
-
-		// Get the json tag
-		tag := field.Tag.Get("json")
-		if tag == "" {
-			continue
-		}
-
-		// Add non-empty values to params
-		switch value.Kind() {
-		case reflect.String:
-			if str := value.String(); str != "" {
-				params.Add(tag, str)
-			}
-		case reflect.Bool:
-			if value.Bool() {
-				params.Add(tag, "true")
-			}
-		}
+func (g *GithubService) GetAppToken(args GetAppTokenArgs) (*string, error) {
+	token := jwt.New(jwt.SigningMethodRS256)
+	token.Claims = jwt.MapClaims{
+		"iss": args.ClientId,
+		"iat": jwt.NewNumericDate(time.Now()),
+		"exp": jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
 	}
 
-	// Build final URL
-	if len(params) > 0 {
-		baseURL += "?" + params.Encode()
+	key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(args.PrivateKey))
+	if err != nil {
+		return nil, err
 	}
 
-	return &types.CreateAppResult{
-		AppUrl:     baseURL,
-		PrivateKey: "",
-	}, nil
+	tokenString, err := token.SignedString(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tokenString, nil
 }
 
-func (g *GithubService) InstallApp() error {
-	panic("unimplemented")
+type GetInstallationTokenArgs struct {
+	ClientId       string
+	PrivateKey     string
+	InstallationId int64
 }
 
-func (g *GithubService) UpdateAppAccess() error {
-	panic("unimplemented")
+func (g *GithubService) GetInstallationToken(args GetInstallationTokenArgs) (*string, error) {
+	token, err := g.GetAppToken(GetAppTokenArgs{
+		ClientId:   args.ClientId,
+		PrivateKey: args.PrivateKey,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(*token)
+	installationToken, _, err := client.Apps.CreateInstallationToken(context.Background(), args.InstallationId, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return installationToken.Token, nil
 }
 
-func (g *GithubService) UpdateAppWebhook() error {
-	panic("unimplemented")
-}
-
-func (g *GithubService) CloneRepo() error {
-	panic("unimplemented")
-}
-
-func NewGithubService() IGithubService {
-	return &GithubService{}
+func NewGithubService(i *do.Injector) (IGithubService, error) {
+	return &GithubService{}, nil
 }

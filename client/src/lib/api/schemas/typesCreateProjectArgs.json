@@ -1,0 +1,26 @@
+{
+	"properties": {
+		"app_id": { "type": "string" },
+		"auto_deploy": { "type": "boolean" },
+		"description": { "type": "string" },
+		"installation_id": { "type": "string" },
+		"name": { "type": "string" },
+		"repo_fullname": { "type": "string" },
+		"repo_id": { "type": "string" },
+		"require_approval": { "type": "boolean" },
+		"variables": { "type": "string" }
+	},
+	"required": [
+		"app_id",
+		"auto_deploy",
+		"description",
+		"installation_id",
+		"name",
+		"repo_fullname",
+		"repo_id",
+		"require_approval",
+		"variables"
+	],
+	"type": "object",
+	"x-readme-ref-name": "types.CreateProjectArgs"
+}

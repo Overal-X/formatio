@@ -1,23 +1,23 @@
 {
 	"properties": {
-		"appId": { "type": "integer" },
-		"appName": { "type": "string" },
-		"createdAt": { "type": "string" },
+		"app_id": { "type": "integer" },
+		"app_name": { "type": "string" },
+		"created_at": { "type": "string" },
 		"id": { "type": "string" },
-		"ownerId": { "type": "integer" },
-		"ownerType": { "type": "string" },
-		"ownerUsername": { "type": "string" },
-		"updatedAt": { "type": "string" }
+		"owner_id": { "type": "integer" },
+		"owner_type": { "type": "string" },
+		"owner_username": { "type": "string" },
+		"updated_at": { "type": "string" }
 	},
 	"required": [
-		"appId",
-		"appName",
-		"createdAt",
+		"app_id",
+		"app_name",
+		"created_at",
 		"id",
-		"ownerId",
-		"ownerType",
-		"ownerUsername",
-		"updatedAt"
+		"owner_id",
+		"owner_type",
+		"owner_username",
+		"updated_at"
 	],
 	"type": "object",
 	"x-readme-ref-name": "models.GithubApp"

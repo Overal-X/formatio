@@ -1,0 +1,11 @@
+{
+	"enum": ["PENDING", "RUNNING", "SUCCESS", "FAILURE"],
+	"type": "string",
+	"x-enum-varnames": [
+		"DeploymentStatusPending",
+		"DeploymentStatusRunning",
+		"DeploymentStatusSuccess",
+		"DeploymentStatusFailure"
+	],
+	"x-readme-ref-name": "models.DeploymentStatus"
+}

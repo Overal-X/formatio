@@ -4,19 +4,19 @@ import type { CreateAppQueryResponse } from '../types/CreateApp.ts';
 import type { QueryKey, CreateBaseQueryOptions, CreateQueryResult } from '@tanstack/svelte-query';
 import { queryOptions, createQuery } from '@tanstack/svelte-query';
 
-export const createAppQueryKey = () => [{ url: '/api/providers/github' }] as const;
+export const createAppQueryKey = () => [{ url: '/api/github' }] as const;
 
 export type CreateAppQueryKey = ReturnType<typeof createAppQueryKey>;
 
 /**
- * {@link /api/providers/github}
+ * {@link /api/github}
  */
 export async function createApp(config: Partial<RequestConfig> & { client?: typeof client } = {}) {
 	const { client: request = client, ...requestConfig } = config;
 
 	const res = await request<CreateAppQueryResponse, ResponseErrorConfig<Error>, unknown>({
 		method: 'GET',
-		url: `/api/providers/github`,
+		url: `/api/github`,
 		...requestConfig
 	});
 	return res.data;
@@ -41,7 +41,7 @@ export function createAppQueryOptions(
 }
 
 /**
- * {@link /api/providers/github}
+ * {@link /api/github}
  */
 export function createCreateApp<
 	TData = CreateAppQueryResponse,

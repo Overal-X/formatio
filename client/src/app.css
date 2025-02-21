@@ -8,7 +8,39 @@
 	font-style: normal;
 }
 
-html,
-body {
-	@apply h-full w-full bg-[#333] text-white;
+@layer base {
+	html,
+	body {
+		@apply h-full w-full bg-[#333] text-white;
+	}
+
+	a {
+		@apply text-white hover:underline;
+	}
+
+	button {
+		@apply w-full border border-white p-4 text-left text-sm hover:cursor-pointer hover:bg-[rgba(0,0,0,0.25)];
+	}
+
+	form {
+		@apply space-y-2 space-x-2;
+	}
+
+	.form-control {
+		@apply flex w-full flex-col gap-2;
+	}
+
+	.form-control .form-error {
+		@apply text-sm text-red-500;
+	}
+
+	.form-control > input,
+	textarea,
+	select {
+		@apply w-full border border-white p-4 text-sm;
+	}
+
+	.form-control > textarea {
+		@apply min-h-5;
+	}
 }

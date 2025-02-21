@@ -3,7 +3,10 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/samber/do"
 	"github.com/samber/lo"
 )
 
@@ -92,11 +95,11 @@ func (n *NixpacksService) Run(args RunArgs) (err error) {
 		lo.ForEach(lo.Keys(*args.Ports), func(k string, _ int) {
 			// Validate port numbers
 			if _, err := strconv.Atoi(k); err != nil {
-				err = fmt.Errorf("invalid host port: %s", k)
+				// err = fmt.Errorf("invalid host port: %s", k)
 				return
 			}
 			if _, err := strconv.Atoi((*args.Ports)[k]); err != nil {
-				err = fmt.Errorf("invalid container port: %s", (*args.Ports)[k])
+				// err = fmt.Errorf("invalid container port: %s", (*args.Ports)[k])
 				return
 			}
 			fmt.Fprintf(&command, " -p %s:%s", k, (*args.Ports)[k])
@@ -106,7 +109,7 @@ func (n *NixpacksService) Run(args RunArgs) (err error) {
 	// Escape app name to prevent command injection
 	fmt.Fprintf(&command, " %s", strings.ReplaceAll(args.AppName, " ", "\\ "))
 	return n.execHelper.Execute(ExecuteArgs{
-		Command: command,
+		Command: command.String(),
 		OutputCallback: func(s string) {
 			args.Callback(&s, nil)
 		},
@@ -116,6 +119,8 @@ func (n *NixpacksService) Run(args RunArgs) (err error) {
 	})
 }
 
-func NewNixpacksService(execHelper IExecService) INixpacksService {
-	return &NixpacksService{execHelper: execHelper}
+func NewNixpacksService(i *do.Injector) (INixpacksService, error) {
+	execHelper := do.MustInvoke[IExecService](i)
+
+	return &NixpacksService{execHelper: execHelper}, nil
 }

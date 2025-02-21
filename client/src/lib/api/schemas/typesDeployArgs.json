@@ -1,0 +1,6 @@
+{
+	"properties": { "commit_sha": { "type": "string" } },
+	"required": ["commit_sha"],
+	"type": "object",
+	"x-readme-ref-name": "types.DeployArgs"
+}

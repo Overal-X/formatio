@@ -1,0 +1,12 @@
+{
+	"properties": {
+		"id": { "type": "integer" },
+		"name": { "type": "string" },
+		"owner_id": { "type": "integer" },
+		"owner_type": { "type": "string" },
+		"owner_username": { "type": "string" }
+	},
+	"required": ["id", "name", "owner_id", "owner_type", "owner_username"],
+	"type": "object",
+	"x-readme-ref-name": "types.Repo"
+}

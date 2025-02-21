@@ -1,0 +1,53 @@
+{
+	"properties": {
+		"created_at": { "type": "string" },
+		"host_name": { "type": "string" },
+		"id": { "type": "string" },
+		"port": { "type": "integer" },
+		"project": {
+			"properties": {
+				"app_id": { "type": "string" },
+				"auto_deploy": { "type": "boolean" },
+				"created_at": { "type": "string" },
+				"description": { "type": "string" },
+				"id": { "type": "string" },
+				"installation_id": { "type": "string" },
+				"name": { "type": "string" },
+				"repo_fullname": { "type": "string" },
+				"repo_id": { "type": "integer" },
+				"require_approval": { "type": "boolean" },
+				"updated_at": { "type": "string" }
+			},
+			"required": [
+				"app_id",
+				"auto_deploy",
+				"created_at",
+				"description",
+				"id",
+				"installation_id",
+				"name",
+				"repo_fullname",
+				"repo_id",
+				"require_approval",
+				"updated_at"
+			],
+			"type": "object",
+			"x-readme-ref-name": "models.Project"
+		},
+		"project_id": { "type": "string" },
+		"target_id": { "type": "string" },
+		"updated_at": { "type": "string" }
+	},
+	"required": [
+		"created_at",
+		"host_name",
+		"id",
+		"port",
+		"project",
+		"project_id",
+		"target_id",
+		"updated_at"
+	],
+	"type": "object",
+	"x-readme-ref-name": "models.Network"
+}
