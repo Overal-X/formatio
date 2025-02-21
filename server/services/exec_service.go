@@ -6,6 +6,8 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+
+	"github.com/samber/do"
 )
 
 type ExecuteArgs struct {
@@ -61,6 +63,6 @@ func (w writeCallback) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func NewExecService() IExecService {
-	return &ExecService{}
+func NewExecService(i *do.Injector) (IExecService, error) {
+	return &ExecService{}, nil
 }

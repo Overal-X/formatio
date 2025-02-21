@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/samber/do"
 )
 
 type UnzipArgs struct {
@@ -118,6 +120,6 @@ func (fs *FileService) Remove(args RemoveArgs) (err error) {
 	return os.RemoveAll(args.File)
 }
 
-func NewFileService() IFileService {
-	return &FileService{}
+func NewFileService(i *do.Injector) (IFileService, error) {
+	return &FileService{}, nil
 }

@@ -76,4 +76,5 @@ func (p *UpdateProjectArgs) ToModel() models.Project {
 type DeployArgs struct {
 	ProjectId string `json:"id" param:"id" swaggerignore:"true"`
 	CommitSha string `json:"commit_sha" body:"commit_sha"`
+	Message   string `json:"message" validate:"optional"`
 }

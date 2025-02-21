@@ -10,19 +10,34 @@ import (
 	"github.com/overal-x/formatio/models"
 	"github.com/overal-x/formatio/services"
 	"github.com/overal-x/formatio/types"
+	"github.com/samber/do"
+	"gorm.io/gorm"
 )
 
 // @title Formatio API
 // @version 1.0
 // @BasePath /
 func main() {
-	env := config.NewEnv()
-	db, err := config.NewDatabaseConnection(env)
-	if err != nil {
-		log.Fatal(err)
-	}
+	i := do.New()
 
-	err = db.AutoMigrate(
+	do.Provide(i, config.NewEnv)
+	do.Provide(i, config.NewDatabaseConnection)
+	do.Provide(i, services.NewRabbitMQConnection)
+	do.Provide(i, services.NewRabbitMQService)
+	do.Provide(i, services.NewGithubService)
+	do.Provide(i, services.NewExecService)
+	do.Provide(i, services.NewNixpacksService)
+	do.Provide(i, services.NewDeploymentService)
+	do.Provide(i, services.NewFileService)
+	do.Provide(i, services.NewProjectService)
+	do.Provide(i, handlers.NewGithubHandler)
+	do.Provide(i, handlers.NewProjectHandler)
+	do.Provide(i, handlers.NewDeploymentHandler)
+
+	env := do.MustInvoke[*config.Env](i)
+	db := do.MustInvoke[*gorm.DB](i)
+
+	err := db.AutoMigrate(
 		&models.GithubApp{},
 		&models.Project{},
 		&models.Environment{},
@@ -34,20 +49,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	githubService := services.NewGithubService()
-	githubHandler := handlers.NewGithubHandler(db, githubService)
+	rabbitmqService := do.MustInvoke[services.IRabbitMQService](i)
 
-	execService := services.NewExecService()
-	nixpacksService := services.NewNixpacksService(execService)
-
-	rabbitmqConnection := services.NewRabbitMQConnection(env)
-	rabbitmqService := services.NewRabbitMQService(rabbitmqConnection)
-
-	projectService := services.NewProjectService(db, execService, nixpacksService, githubService, rabbitmqService)
-	projectHandler := handlers.NewProjectHandler(projectService)
-
-	deploymentService := services.NewDeploymentService(db)
-	deploymentHandler := handlers.NewDeploymentHandler(deploymentService)
+	githubHandler := do.MustInvoke[handlers.IGithubHandler](i)
+	projectHandler := do.MustInvoke[handlers.IProjectHandler](i)
+	deploymentHandler := do.MustInvoke[handlers.IDeploymentHandler](i)
 
 	srv := config.NewServer()
 
@@ -68,20 +74,28 @@ func main() {
 	srv.GET("/api/deployments/:project_id/", deploymentHandler.ListDeployments)
 	srv.GET("/api/deployments/:deployment_id/logs/", deploymentHandler.ListDeploymentLogs)
 
-	go rabbitmqService.Subscribe(services.SubscribeArgs{
-		Queue: services.GITHUB_DEPLOYMENT_QUEUE,
-		Callback: func(content string) error {
-			payload := types.DeployArgs{}
-			if err := json.Unmarshal([]byte(content), &payload); err != nil {
-				return err
-			}
-			if err := projectService.HandleDeploy(payload); err != nil {
-				return err
-			}
+	go func() {
+		projectService := do.MustInvoke[services.IProjectService](i)
 
-			return nil
-		},
-	})
+		err := rabbitmqService.Subscribe(services.SubscribeArgs{
+			Queue: services.GITHUB_DEPLOYMENT_QUEUE,
+			Callback: func(content string) error {
+				payload := types.DeployArgs{}
+				if err := json.Unmarshal([]byte(content), &payload); err != nil {
+					return err
+				}
+				if err := projectService.HandleDeploy(payload); err != nil {
+					return err
+				}
+
+				return nil
+			},
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%d", env.PORT)))
+	i.Shutdown()
 }

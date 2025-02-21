@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/overal-x/formatio/config"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/samber/do"
 )
 
 type IRabbitMQService interface {
@@ -162,18 +164,21 @@ func (r *RabbitMQService) SubscribeWithWorkers(workers int, args SubscribeArgs) 
 	wg.Wait()
 }
 
-func NewRabbitMQService(connection *amqp.Connection) IRabbitMQService {
-	return &RabbitMQService{connection: connection}
+func NewRabbitMQService(i *do.Injector) (IRabbitMQService, error) {
+	connection := do.MustInvoke[*amqp.Connection](i)
+
+	return &RabbitMQService{connection: connection}, nil
 }
 
-func NewRabbitMQConnection(env *config.Env) *amqp.Connection {
+func NewRabbitMQConnection(i *do.Injector) (*amqp.Connection, error) {
+	env := do.MustInvoke[*config.Env](i)
 	connection, err := amqp.Dial(env.RABBITMQ_URL)
 
 	if err != nil {
-		log.Printf("[x] %s: while connecting", err)
+		return nil, fmt.Errorf("[x] %s: while connecting", err)
 	}
 
 	log.Println("[x] connection established")
 
-	return connection
+	return connection, nil
 }

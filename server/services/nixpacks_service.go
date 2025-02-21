@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/samber/do"
 	"github.com/samber/lo"
 )
 
@@ -118,6 +119,8 @@ func (n *NixpacksService) Run(args RunArgs) (err error) {
 	})
 }
 
-func NewNixpacksService(execHelper IExecService) INixpacksService {
-	return &NixpacksService{execHelper: execHelper}
+func NewNixpacksService(i *do.Injector) (INixpacksService, error) {
+	execHelper := do.MustInvoke[IExecService](i)
+
+	return &NixpacksService{execHelper: execHelper}, nil
 }

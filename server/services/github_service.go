@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-github/v69/github"
+	"github.com/samber/do"
 )
 
 type IGithubService interface {
@@ -96,6 +97,6 @@ func (g *GithubService) GetInstallationToken(args GetInstallationTokenArgs) (*st
 	return installationToken.Token, nil
 }
 
-func NewGithubService() IGithubService {
-	return &GithubService{}
+func NewGithubService(i *do.Injector) (IGithubService, error) {
+	return &GithubService{}, nil
 }

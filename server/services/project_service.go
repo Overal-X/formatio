@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-github/v69/github"
 	"github.com/overal-x/formatio/models"
 	"github.com/overal-x/formatio/types"
+	"github.com/samber/do"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -139,31 +140,37 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 		return err
 	}
 
-	token, err := p.githubServices.GetInstallationToken(GetInstallationTokenArgs{
-		ClientId:       app.ClientId,
-		PrivateKey:     app.PrivateKey,
-		InstallationId: int64(lo.Must(strconv.Atoi(project.InstallationId))),
-	})
-	if err != nil {
-		return err
-	}
+	commitMessage := args.Message
 
-	client := github.NewClient(nil).WithAuthToken(*token)
-	commit, _, err := client.Repositories.GetCommit(
-		context.Background(),
-		strings.Split(project.RepoFullname, "/")[0],
-		strings.Split(project.RepoFullname, "/")[1],
-		args.CommitSha,
-		nil,
-	)
-	if err != nil {
-		return err
+	if commitMessage == "" {
+		token, err := p.githubServices.GetInstallationToken(GetInstallationTokenArgs{
+			ClientId:       app.ClientId,
+			PrivateKey:     app.PrivateKey,
+			InstallationId: int64(lo.Must(strconv.Atoi(project.InstallationId))),
+		})
+		if err != nil {
+			return err
+		}
+
+		client := github.NewClient(nil).WithAuthToken(*token)
+		commit, _, err := client.Repositories.GetCommit(
+			context.Background(),
+			strings.Split(project.RepoFullname, "/")[0],
+			strings.Split(project.RepoFullname, "/")[1],
+			args.CommitSha,
+			nil,
+		)
+		if err != nil {
+			return err
+		}
+
+		commitMessage = *commit.Commit.Message
 	}
 
 	deployment := models.Deployment{
 		ProjectId:     args.ProjectId,
 		EnvironmentId: environment.Id,
-		Message:       *commit.Commit.Message,
+		Message:       commitMessage,
 		Status:        models.DeploymentStatusPending,
 	}
 	err = p.db.Create(&deployment).Error
@@ -264,6 +271,19 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 		return err
 	}
 
+	err = p.execService.Execute(ExecuteArgs{
+		Command: fmt.Sprintf("docker container rm -f %s", project.Name),
+		OutputCallback: func(s string) {
+			fmt.Println("> ", s)
+		},
+		ErrorCallback: func(s string) {
+			fmt.Println("x ", s)
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	hostName := fmt.Sprintf("%s.localhost", project.Name)
 	err = p.execService.Execute(ExecuteArgs{
 		Command: fmt.Sprintf(
@@ -302,18 +322,18 @@ func (p *ProjectService) GetNework(id string) (network *models.Network, err erro
 	return network, nil
 }
 
-func NewProjectService(
-	db *gorm.DB,
-	execService IExecService,
-	nixpacksService INixpacksService,
-	githubService IGithubService,
-	rabbitmqService IRabbitMQService,
-) IProjectService {
+func NewProjectService(i *do.Injector) (IProjectService, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	execService := do.MustInvoke[IExecService](i)
+	nixpacksService := do.MustInvoke[INixpacksService](i)
+	githubService := do.MustInvoke[IGithubService](i)
+	rabbitmqService := do.MustInvoke[IRabbitMQService](i)
+
 	return &ProjectService{
 		db:              db,
 		execService:     execService,
 		nixpacksService: nixpacksService,
 		githubServices:  githubService,
 		rabbitmqService: rabbitmqService,
-	}
+	}, nil
 }

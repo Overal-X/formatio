@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/overal-x/formatio/models"
 	"github.com/overal-x/formatio/types"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -33,6 +34,8 @@ func (d *DeploymentService) ListDeploymentLogs(args types.ListDeploymentLogsArgs
 	return deployment_logs, nil
 }
 
-func NewDeploymentService(db *gorm.DB) IDeploymentService {
-	return &DeploymentService{db: db}
+func NewDeploymentService(i *do.Injector) (IDeploymentService, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+
+	return &DeploymentService{db: db}, nil
 }

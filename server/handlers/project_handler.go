@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/overal-x/formatio/services"
 	"github.com/overal-x/formatio/types"
+	"github.com/samber/do"
 )
 
 type IProjectHandler interface {
@@ -138,6 +139,8 @@ func (p *ProjectHandler) GetNetwork(c echo.Context) error {
 	return c.JSON(http.StatusCreated, project)
 }
 
-func NewProjectHandler(projectService services.IProjectService) IProjectHandler {
-	return &ProjectHandler{projectService: projectService}
+func NewProjectHandler(i *do.Injector) (IProjectHandler, error) {
+	projectService := do.MustInvoke[services.IProjectService](i)
+
+	return &ProjectHandler{projectService: projectService}, nil
 }

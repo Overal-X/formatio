@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/google/go-github/v69/github"
@@ -10,6 +12,7 @@ import (
 	"github.com/overal-x/formatio/services"
 	"github.com/overal-x/formatio/types"
 	"github.com/overal-x/formatio/utils"
+	"github.com/samber/do"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
@@ -23,8 +26,9 @@ type IGithubHandler interface {
 }
 
 type GithubHandler struct {
-	db            *gorm.DB
-	githubService services.IGithubService
+	db             *gorm.DB
+	githubService  services.IGithubService
+	projectService services.IProjectService
 }
 
 // @ID create-app
@@ -78,13 +82,31 @@ func (g *GithubHandler) ListApps(c echo.Context) error {
 }
 
 func (g *GithubHandler) DeployRepo(c echo.Context) error {
-	apps := []models.GithubApp{}
-	err := g.db.Find(&apps).Error
+	args := types.WebhhookPayload{}
+	err := c.Bind(&args)
 	if err != nil {
-		return utils.HandleGormError(c, err)
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
 
-	return c.JSON(200, apps)
+	project := models.Project{}
+	err = g.db.Find(&project,
+		"installation_id = ? AND repo_id = ?",
+		fmt.Sprintf("%d", args.Installation.ID), fmt.Sprintf("%d", args.Repository.ID),
+	).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
+	}
+
+	err = g.projectService.Deploy(types.DeployArgs{
+		ProjectId: project.Id,
+		CommitSha: args.HeadCommit.ID,
+		Message:   args.HeadCommit.Message,
+	})
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
+	}
+
+	return c.JSON(200, nil)
 }
 
 // @ID list-installations
@@ -166,6 +188,10 @@ func (g *GithubHandler) ListRepo(c echo.Context) error {
 	}))
 }
 
-func NewGithubHandler(db *gorm.DB, githubService services.IGithubService) IGithubHandler {
-	return &GithubHandler{db: db, githubService: githubService}
+func NewGithubHandler(i *do.Injector) (IGithubHandler, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	githubService := do.MustInvoke[services.IGithubService](i)
+	projectService := do.MustInvoke[services.IProjectService](i)
+
+	return &GithubHandler{db: db, githubService: githubService, projectService: projectService}, nil
 }

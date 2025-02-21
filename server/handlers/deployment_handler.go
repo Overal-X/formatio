@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/overal-x/formatio/services"
 	"github.com/overal-x/formatio/types"
+	"github.com/samber/do"
 )
 
 type IDeploymentHandler interface {
@@ -55,6 +56,8 @@ func (d *DeploymentHandler) ListDeploymentLogs(c echo.Context) error {
 	return c.JSON(http.StatusOK, deployments)
 }
 
-func NewDeploymentHandler(deploymentService services.IDeploymentService) IDeploymentHandler {
-	return &DeploymentHandler{deploymentService: deploymentService}
+func NewDeploymentHandler(i *do.Injector) (IDeploymentHandler, error) {
+	deploymentService := do.MustInvoke[services.IDeploymentService](i)
+
+	return &DeploymentHandler{deploymentService: deploymentService}, nil
 }
