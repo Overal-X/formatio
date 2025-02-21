@@ -22,7 +22,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = db.AutoMigrate(&models.GithubApp{}, &models.Project{}, &models.Environment{})
+	err = db.AutoMigrate(
+		&models.GithubApp{},
+		&models.Project{},
+		&models.Environment{},
+		&models.Deployment{},
+		&models.DeploymentLog{},
+		&models.Network{},
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,12 +46,15 @@ func main() {
 	projectService := services.NewProjectService(db, execService, nixpacksService, githubService, rabbitmqService)
 	projectHandler := handlers.NewProjectHandler(projectService)
 
+	deploymentService := services.NewDeploymentService(db)
+	deploymentHandler := handlers.NewDeploymentHandler(deploymentService)
+
 	srv := config.NewServer()
 
 	srv.GET("/api/github/", githubHandler.CreateApp)
 	srv.GET("/api/github/apps/", githubHandler.ListApps)
-	srv.GET("/api/github/installations/:appId/", githubHandler.ListInstallations)
-	srv.GET("/api/github/repos/:appId/:installationId/", githubHandler.ListRepo)
+	srv.GET("/api/github/installations/:app_id/", githubHandler.ListInstallations)
+	srv.GET("/api/github/repos/:app_id/:installation_id/", githubHandler.ListRepo)
 	srv.POST("/api/github/deploy/", githubHandler.DeployRepo)
 
 	srv.GET("/api/projects/", projectHandler.List)
@@ -53,6 +63,10 @@ func main() {
 	srv.PATCH("/api/projects/:id/", projectHandler.Update)
 	srv.DELETE("/api/projects/:id/", projectHandler.Delete)
 	srv.POST("/api/projects/:id/deploy/", projectHandler.Deploy)
+	srv.GET("/api/projects/:id/network/", projectHandler.GetNetwork)
+
+	srv.GET("/api/deployments/:project_id/", deploymentHandler.ListDeployments)
+	srv.GET("/api/deployments/:deployment_id/logs/", deploymentHandler.ListDeploymentLogs)
 
 	go rabbitmqService.Subscribe(services.SubscribeArgs{
 		Queue: services.GITHUB_DEPLOYMENT_QUEUE,

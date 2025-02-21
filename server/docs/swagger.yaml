@@ -1,5 +1,98 @@
 basePath: /
 definitions:
+  models.Deployment:
+    properties:
+      created_at:
+        type: string
+      environment:
+        $ref: '#/definitions/models.Environment'
+      environment_id:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      project:
+        $ref: '#/definitions/models.Project'
+      project_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.DeploymentStatus'
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - environment
+    - environment_id
+    - id
+    - message
+    - project
+    - project_id
+    - status
+    - updated_at
+    type: object
+  models.DeploymentLog:
+    properties:
+      created_at:
+        type: string
+      deployment:
+        $ref: '#/definitions/models.Deployment'
+      deployment_id:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - deployment
+    - deployment_id
+    - id
+    - message
+    - updated_at
+    type: object
+  models.DeploymentStatus:
+    enum:
+    - PENDING
+    - RUNNING
+    - SUCCESS
+    - FAILURE
+    type: string
+    x-enum-varnames:
+    - DeploymentStatusPending
+    - DeploymentStatusRunning
+    - DeploymentStatusSuccess
+    - DeploymentStatusFailure
+  models.Environment:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      project:
+        $ref: '#/definitions/models.Project'
+      project_id:
+        type: string
+      updated_at:
+        type: string
+      variables:
+        type: string
+    required:
+    - created_at
+    - id
+    - is_active
+    - name
+    - project
+    - project_id
+    - updated_at
+    - variables
+    type: object
   models.GithubApp:
     properties:
       app_id:
@@ -28,6 +121,34 @@ definitions:
     - owner_username
     - updated_at
     type: object
+  models.Network:
+    properties:
+      created_at:
+        type: string
+      host_name:
+        type: string
+      id:
+        type: string
+      port:
+        type: integer
+      project:
+        $ref: '#/definitions/models.Project'
+      project_id:
+        type: string
+      target_id:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - host_name
+    - id
+    - port
+    - project
+    - project_id
+    - target_id
+    - updated_at
+    type: object
   models.Project:
     properties:
       app_id:
@@ -44,6 +165,8 @@ definitions:
         type: string
       name:
         type: string
+      repo_fullname:
+        type: string
       repo_id:
         type: integer
       require_approval:
@@ -58,6 +181,7 @@ definitions:
     - id
     - installation_id
     - name
+    - repo_fullname
     - repo_id
     - require_approval
     - updated_at
@@ -74,6 +198,8 @@ definitions:
         type: string
       name:
         type: string
+      repo_fullname:
+        type: string
       repo_id:
         type: string
       require_approval:
@@ -86,9 +212,17 @@ definitions:
     - description
     - installation_id
     - name
+    - repo_fullname
     - repo_id
     - require_approval
     - variables
+    type: object
+  types.DeployArgs:
+    properties:
+      commit_sha:
+        type: string
+    required:
+    - commit_sha
     type: object
   types.Installation:
     properties:
@@ -119,6 +253,10 @@ definitions:
     - owner_id
     - owner_type
     - owner_username
+    type: object
+  types.ListDeploymentLogsArgs:
+    type: object
+  types.ListDeploymentsArgs:
     type: object
   types.Repo:
     properties:
@@ -153,6 +291,8 @@ definitions:
         type: string
       name:
         type: string
+      repo_fullname:
+        type: string
       repo_id:
         type: string
       require_approval:
@@ -164,6 +304,7 @@ definitions:
     - id
     - installation_id
     - name
+    - repo_fullname
     - repo_id
     - require_approval
     type: object
@@ -172,6 +313,50 @@ info:
   title: Formatio API
   version: "1.0"
 paths:
+  /api/deployments/{deployment_id}/logs/:
+    get:
+      operationId: list-deployment-logs
+      parameters:
+      - description: Deployment Id
+        in: path
+        name: deployment_id
+        required: true
+        type: string
+      - description: List Deployments Logs Args
+        in: body
+        name: args
+        required: true
+        schema:
+          $ref: '#/definitions/types.ListDeploymentLogsArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DeploymentLog'
+            type: array
+  /api/deployments/{project_id}:
+    get:
+      operationId: list-deployments
+      parameters:
+      - description: Project Id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: List Deployments Args
+        in: body
+        name: args
+        required: true
+        schema:
+          $ref: '#/definitions/types.ListDeploymentsArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Deployment'
+            type: array
   /api/github:
     get:
       operationId: create-app
@@ -190,13 +375,13 @@ paths:
             items:
               $ref: '#/definitions/models.GithubApp'
             type: array
-  /api/github/installations/{appId}:
+  /api/github/installations/{app_id}:
     get:
       operationId: list-installations
       parameters:
       - description: App Id
         in: path
-        name: appId
+        name: app_id
         required: true
         type: string
       responses:
@@ -206,18 +391,18 @@ paths:
             items:
               $ref: '#/definitions/types.Installation'
             type: array
-  /api/github/repos/{appId}/{installationId}:
+  /api/github/repos/{app_id}/{installation_id}:
     get:
       operationId: list-repo
       parameters:
       - description: App Id
         in: path
-        name: appId
+        name: app_id
         required: true
         type: string
       - description: Installation Id
         in: path
-        name: installationId
+        name: installation_id
         required: true
         type: string
       responses:
@@ -295,4 +480,38 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Project'
+  /api/projects/{id}/deploy:
+    post:
+      operationId: deploy-project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Deploy Args
+        in: body
+        name: args
+        required: true
+        schema:
+          $ref: '#/definitions/types.DeployArgs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Project'
+  /api/projects/{id}/network:
+    get:
+      operationId: get-network
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Network'
 swagger: "2.0"

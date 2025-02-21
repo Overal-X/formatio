@@ -5,12 +5,12 @@ export type ListRepoPathParams = {
 	 * @description App Id
 	 * @type string
 	 */
-	appId: string;
+	app_id: string;
 	/**
 	 * @description Installation Id
 	 * @type string
 	 */
-	installationId: string;
+	installation_id: string;
 };
 
 /**

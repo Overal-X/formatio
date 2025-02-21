@@ -3,6 +3,7 @@
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
 	import '../app.css';
+	import { Toast } from '$lib/components/toast';
 
 	let { children } = $props();
 
@@ -22,4 +23,5 @@
 <QueryClientProvider client={queryClient}>
 	<SvelteQueryDevtools />
 	{@render children()}
+	<Toast />
 </QueryClientProvider>

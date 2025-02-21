@@ -15,6 +15,7 @@ type IProjectHandler interface {
 	Update(c echo.Context) error
 	Delete(c echo.Context) error
 	Deploy(c echo.Context) error
+	GetNetwork(c echo.Context) error
 }
 
 type ProjectHandler struct {
@@ -107,6 +108,7 @@ func (p *ProjectHandler) Delete(c echo.Context) error {
 // @ID deploy-project
 // @Success 200 {object} models.Project
 // @Param id path string true "Project ID"
+// @Param args body types.DeployArgs true "Deploy Args"
 // @Router /api/projects/{id}/deploy [post]
 func (p *ProjectHandler) Deploy(c echo.Context) error {
 	args := types.DeployArgs{}
@@ -120,6 +122,20 @@ func (p *ProjectHandler) Deploy(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, nil)
+}
+
+// @ID get-network
+// @Success 200 {object} models.Network
+// @Param id path string true "Project ID"
+// @Router /api/projects/{id}/network [get]
+func (p *ProjectHandler) GetNetwork(c echo.Context) error {
+	id := c.Param("id")
+	project, err := p.projectService.GetNework(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	return c.JSON(http.StatusCreated, project)
 }
 
 func NewProjectHandler(projectService services.IProjectService) IProjectHandler {

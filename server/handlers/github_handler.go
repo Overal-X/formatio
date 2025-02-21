@@ -89,11 +89,11 @@ func (g *GithubHandler) DeployRepo(c echo.Context) error {
 
 // @ID list-installations
 // @Success 200 {array} types.Installation
-// @Param	appId path string	true "App Id"
-// @Router /api/github/installations/{appId} [get]
+// @Param	app_id path string	true "App Id"
+// @Router /api/github/installations/{app_id} [get]
 func (g *GithubHandler) ListInstallations(c echo.Context) error {
 	app := models.GithubApp{}
-	err := g.db.First(&app).Where("id = ?", c.Param("appId")).Error
+	err := g.db.First(&app).Where("id = ?", c.Param("app_id")).Error
 	if err != nil {
 		return utils.HandleGormError(c, err)
 	}
@@ -128,17 +128,17 @@ func (g *GithubHandler) ListInstallations(c echo.Context) error {
 
 // @ID list-repo
 // @Success 200 {array} types.Repo
-// @Param	appId path string	true "App Id"
-// @Param	installationId path string	true "Installation Id"
-// @Router /api/github/repos/{appId}/{installationId} [get]
+// @Param	app_id path string	true "App Id"
+// @Param	installation_id path string	true "Installation Id"
+// @Router /api/github/repos/{app_id}/{installation_id} [get]
 func (g *GithubHandler) ListRepo(c echo.Context) error {
 	app := models.GithubApp{}
-	err := g.db.First(&app).Where("id = ?", c.Param("appId")).Error
+	err := g.db.First(&app).Where("id = ?", c.Param("app_id")).Error
 	if err != nil {
 		return utils.HandleGormError(c, err)
 	}
 
-	installationId := int64(lo.Must(strconv.Atoi(c.Param("installationId"))))
+	installationId := int64(lo.Must(strconv.Atoi(c.Param("installation_id"))))
 
 	appToken, err := g.githubService.GetInstallationToken(services.GetInstallationTokenArgs{
 		InstallationId: installationId,

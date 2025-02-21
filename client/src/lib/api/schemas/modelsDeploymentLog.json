@@ -1,0 +1,129 @@
+{
+	"properties": {
+		"created_at": { "type": "string" },
+		"deployment": {
+			"properties": {
+				"created_at": { "type": "string" },
+				"environment": {
+					"properties": {
+						"created_at": { "type": "string" },
+						"id": { "type": "string" },
+						"is_active": { "type": "boolean" },
+						"name": { "type": "string" },
+						"project": {
+							"properties": {
+								"app_id": { "type": "string" },
+								"auto_deploy": { "type": "boolean" },
+								"created_at": { "type": "string" },
+								"description": { "type": "string" },
+								"id": { "type": "string" },
+								"installation_id": { "type": "string" },
+								"name": { "type": "string" },
+								"repo_fullname": { "type": "string" },
+								"repo_id": { "type": "integer" },
+								"require_approval": { "type": "boolean" },
+								"updated_at": { "type": "string" }
+							},
+							"required": [
+								"app_id",
+								"auto_deploy",
+								"created_at",
+								"description",
+								"id",
+								"installation_id",
+								"name",
+								"repo_fullname",
+								"repo_id",
+								"require_approval",
+								"updated_at"
+							],
+							"type": "object",
+							"x-readme-ref-name": "models.Project"
+						},
+						"project_id": { "type": "string" },
+						"updated_at": { "type": "string" },
+						"variables": { "type": "string" }
+					},
+					"required": [
+						"created_at",
+						"id",
+						"is_active",
+						"name",
+						"project",
+						"project_id",
+						"updated_at",
+						"variables"
+					],
+					"type": "object",
+					"x-readme-ref-name": "models.Environment"
+				},
+				"environment_id": { "type": "string" },
+				"id": { "type": "string" },
+				"message": { "type": "string" },
+				"project": {
+					"properties": {
+						"app_id": { "type": "string" },
+						"auto_deploy": { "type": "boolean" },
+						"created_at": { "type": "string" },
+						"description": { "type": "string" },
+						"id": { "type": "string" },
+						"installation_id": { "type": "string" },
+						"name": { "type": "string" },
+						"repo_fullname": { "type": "string" },
+						"repo_id": { "type": "integer" },
+						"require_approval": { "type": "boolean" },
+						"updated_at": { "type": "string" }
+					},
+					"required": [
+						"app_id",
+						"auto_deploy",
+						"created_at",
+						"description",
+						"id",
+						"installation_id",
+						"name",
+						"repo_fullname",
+						"repo_id",
+						"require_approval",
+						"updated_at"
+					],
+					"type": "object",
+					"x-readme-ref-name": "models.Project"
+				},
+				"project_id": { "type": "string" },
+				"status": {
+					"enum": ["PENDING", "RUNNING", "SUCCESS", "FAILURE"],
+					"type": "string",
+					"x-enum-varnames": [
+						"DeploymentStatusPending",
+						"DeploymentStatusRunning",
+						"DeploymentStatusSuccess",
+						"DeploymentStatusFailure"
+					],
+					"x-readme-ref-name": "models.DeploymentStatus"
+				},
+				"updated_at": { "type": "string" }
+			},
+			"required": [
+				"created_at",
+				"environment",
+				"environment_id",
+				"id",
+				"message",
+				"project",
+				"project_id",
+				"status",
+				"updated_at"
+			],
+			"type": "object",
+			"x-readme-ref-name": "models.Deployment"
+		},
+		"deployment_id": { "type": "string" },
+		"id": { "type": "string" },
+		"message": { "type": "string" },
+		"updated_at": { "type": "string" }
+	},
+	"required": ["created_at", "deployment", "deployment_id", "id", "message", "updated_at"],
+	"type": "object",
+	"x-readme-ref-name": "models.DeploymentLog"
+}

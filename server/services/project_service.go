@@ -1,12 +1,15 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/google/go-github/v69/github"
 	"github.com/overal-x/formatio/models"
 	"github.com/overal-x/formatio/types"
 	"github.com/samber/lo"
@@ -27,6 +30,7 @@ type IProjectService interface {
 	Delete(string) error
 	Deploy(types.DeployArgs) error       // publisher
 	HandleDeploy(types.DeployArgs) error // subscriber
+	GetNework(string) (*models.Network, error)
 }
 
 type ProjectService struct {
@@ -54,15 +58,17 @@ func (p *ProjectService) Create(args types.CreateProjectArgs) (*models.Project, 
 		return nil, err
 	}
 
+	environment := models.Environment{
+		Name:      "Production",
+		ProjectId: project.Id,
+	}
 	if len(args.Variables) > 0 {
-		environment := models.Environment{
-			ProjectId: project.Id,
-			Variables: args.Variables,
-		}
-		err = p.db.Create(&environment).Error
-		if err != nil {
-			return nil, err
-		}
+		environment.Variables = args.Variables
+	}
+
+	err = p.db.Create(&environment).Error
+	if err != nil {
+		return nil, err
 	}
 
 	return &project, err
@@ -89,7 +95,12 @@ func (p *ProjectService) Update(args types.UpdateProjectArgs) (*models.Project, 
 }
 
 func (p *ProjectService) Delete(id string) error {
-	err := p.db.Where("id = ?", id).Delete(&models.Project{}).Error
+	err := p.db.Where("project_id = ?", id).Delete(&models.Environment{}).Error
+	if err != nil {
+		return err
+	}
+
+	err = p.db.Where("id = ?", id).Delete(&models.Project{}).Error
 	if err != nil {
 		return err
 	}
@@ -116,8 +127,46 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 		return err
 	}
 
+	environment := models.Environment{}
+	err = p.db.Where("project_id = ?", args.ProjectId).First(&environment).Error
+	if err != nil {
+		return err
+	}
+
 	app := models.GithubApp{}
-	err = p.db.Where("id = ?", project.AppId).First(&app).Error
+	err = p.db.First(&app, "id = ?", project.AppId).Error
+	if err != nil {
+		return err
+	}
+
+	token, err := p.githubServices.GetInstallationToken(GetInstallationTokenArgs{
+		ClientId:       app.ClientId,
+		PrivateKey:     app.PrivateKey,
+		InstallationId: int64(lo.Must(strconv.Atoi(project.InstallationId))),
+	})
+	if err != nil {
+		return err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(*token)
+	commit, _, err := client.Repositories.GetCommit(
+		context.Background(),
+		strings.Split(project.RepoFullname, "/")[0],
+		strings.Split(project.RepoFullname, "/")[1],
+		args.CommitSha,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	deployment := models.Deployment{
+		ProjectId:     args.ProjectId,
+		EnvironmentId: environment.Id,
+		Message:       *commit.Commit.Message,
+		Status:        models.DeploymentStatusPending,
+	}
+	err = p.db.Create(&deployment).Error
 	if err != nil {
 		return err
 	}
@@ -139,9 +188,19 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 		Command: fmt.Sprintf("git clone %s %s", *cloneUrl, projectDir),
 		OutputCallback: func(s string) {
 			fmt.Println("> ", s)
+			deployment_log := models.DeploymentLog{
+				DeploymentId: deployment.Id,
+				Message:      s,
+			}
+			p.db.Create(&deployment_log)
 		},
 		ErrorCallback: func(s string) {
 			fmt.Println("x ", s)
+			deployment_log := models.DeploymentLog{
+				DeploymentId: deployment.Id,
+				Message:      s,
+			}
+			p.db.Create(&deployment_log)
 		},
 	})
 	if err != nil {
@@ -155,9 +214,19 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 			Command:   fmt.Sprintf("git checkout %s", args.CommitSha),
 			OutputCallback: func(s string) {
 				fmt.Println("> ", s)
+				deployment_log := models.DeploymentLog{
+					DeploymentId: deployment.Id,
+					Message:      s,
+				}
+				p.db.Create(&deployment_log)
 			},
 			ErrorCallback: func(s string) {
 				fmt.Println("x ", s)
+				deployment_log := models.DeploymentLog{
+					DeploymentId: deployment.Id,
+					Message:      s,
+				}
+				p.db.Create(&deployment_log)
 			},
 		})
 		if err != nil {
@@ -175,6 +244,46 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 			} else {
 				fmt.Println("> ", *out)
 			}
+
+			deployment_log := models.DeploymentLog{
+				DeploymentId: deployment.Id,
+				Message:      *out,
+			}
+			p.db.Create(&deployment_log)
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = p.db.
+		Model(&models.Deployment{}).
+		Where("id = ?", deployment.Id).
+		Update("status", models.DeploymentStatusSuccess).Error
+	if err != nil {
+		return err
+	}
+
+	hostName := fmt.Sprintf("%s.localhost", project.Name)
+	err = p.execService.Execute(ExecuteArgs{
+		Command: fmt.Sprintf(
+			`docker run -d -l "traefik.http.routers.%s.rule=Host(\"%s\")" -l "traefik.http.services.%s.loadbalancer.server.port=8000" --name %s %s`,
+			project.Name, hostName, project.Name, project.Name, project.Name,
+		),
+		OutputCallback: func(s string) {
+			fmt.Println("> ", s)
+			network := models.Network{
+				ProjectId: project.Id,
+				ProcessId: s,
+				HostName:  hostName,
+			}
+			err := p.db.Create(&network).Error
+			if errors.Is(gorm.ErrDuplicatedKey, err) {
+				p.db.Updates(&network)
+			}
+		},
+		ErrorCallback: func(s string) {
+			fmt.Println("x ", s)
 		},
 	})
 	if err != nil {
@@ -182,6 +291,15 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 	}
 
 	return nil
+}
+
+func (p *ProjectService) GetNework(id string) (network *models.Network, err error) {
+	err = p.db.First(&network, "project_id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return network, nil
 }
 
 func NewProjectService(

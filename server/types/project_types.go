@@ -15,6 +15,7 @@ type CreateProjectArgs struct {
 	AppId           string `json:"app_id"`
 	InstallationId  string `json:"installation_id"`
 	RepoId          string `json:"repo_id"`
+	RepoFullname    string `json:"repo_fullname"`
 	AutoDeploy      bool   `json:"auto_deploy"`
 	RequireApproval bool   `json:"require_approval"`
 	Variables       string `json:"variables"`
@@ -32,6 +33,10 @@ func (p *CreateProjectArgs) ToModel() models.Project {
 	if p.RepoId != "" {
 		project.RepoId = int64(lo.Must(strconv.Atoi(p.RepoId)))
 	}
+	if p.RepoFullname != "" {
+		project.RepoFullname = p.RepoFullname
+	}
+
 	return project
 }
 
@@ -42,6 +47,7 @@ type UpdateProjectArgs struct {
 	AppId           string `json:"app_id"`
 	InstallationId  string `json:"installation_id"`
 	RepoId          string `json:"repo_id"`
+	RepoFullname    string `json:"repo_fullname"`
 	AutoDeploy      bool   `json:"auto_deploy"`
 	RequireApproval bool   `json:"require_approval"`
 }
@@ -60,10 +66,14 @@ func (p *UpdateProjectArgs) ToModel() models.Project {
 		project.RepoId = int64(lo.Must(strconv.Atoi(p.RepoId)))
 	}
 
+	if p.RepoFullname != "" {
+		project.RepoFullname = p.RepoFullname
+	}
+
 	return project
 }
 
 type DeployArgs struct {
-	ProjectId string `json:"id" param:"id"`
+	ProjectId string `json:"id" param:"id" swaggerignore:"true"`
 	CommitSha string `json:"commit_sha" body:"commit_sha"`
 }

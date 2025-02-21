@@ -5,7 +5,7 @@ export type ListInstallationsPathParams = {
 	 * @description App Id
 	 * @type string
 	 */
-	appId: string;
+	app_id: string;
 };
 
 /**

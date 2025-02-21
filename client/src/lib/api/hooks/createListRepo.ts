@@ -5,67 +5,67 @@ import type { QueryKey, CreateBaseQueryOptions, CreateQueryResult } from '@tanst
 import { queryOptions, createQuery } from '@tanstack/svelte-query';
 
 export const listRepoQueryKey = (
-	appId: ListRepoPathParams['appId'],
-	installationId: ListRepoPathParams['installationId']
+	app_id: ListRepoPathParams['app_id'],
+	installation_id: ListRepoPathParams['installation_id']
 ) =>
 	[
 		{
-			url: '/api/github/repos/:appId/:installationId',
-			params: { appId: appId, installationId: installationId }
+			url: '/api/github/repos/:app_id/:installation_id',
+			params: { app_id: app_id, installation_id: installation_id }
 		}
 	] as const;
 
 export type ListRepoQueryKey = ReturnType<typeof listRepoQueryKey>;
 
 /**
- * {@link /api/github/repos/:appId/:installationId}
+ * {@link /api/github/repos/:app_id/:installation_id}
  */
 export async function listRepo(
-	appId: ListRepoPathParams['appId'],
-	installationId: ListRepoPathParams['installationId'],
+	app_id: ListRepoPathParams['app_id'],
+	installation_id: ListRepoPathParams['installation_id'],
 	config: Partial<RequestConfig> & { client?: typeof client } = {}
 ) {
 	const { client: request = client, ...requestConfig } = config;
 
 	const res = await request<ListRepoQueryResponse, ResponseErrorConfig<Error>, unknown>({
 		method: 'GET',
-		url: `/api/github/repos/${appId}/${installationId}`,
+		url: `/api/github/repos/${app_id}/${installation_id}`,
 		...requestConfig
 	});
 	return res.data;
 }
 
 export function listRepoQueryOptions(
-	appId: ListRepoPathParams['appId'],
-	installationId: ListRepoPathParams['installationId'],
+	app_id: ListRepoPathParams['app_id'],
+	installation_id: ListRepoPathParams['installation_id'],
 	config: Partial<RequestConfig> & { client?: typeof client } = {}
 ) {
-	const queryKey = listRepoQueryKey(appId, installationId);
+	const queryKey = listRepoQueryKey(app_id, installation_id);
 	return queryOptions<
 		ListRepoQueryResponse,
 		ResponseErrorConfig<Error>,
 		ListRepoQueryResponse,
 		typeof queryKey
 	>({
-		enabled: !!(appId && installationId),
+		enabled: !!(app_id && installation_id),
 		queryKey,
 		queryFn: async ({ signal }) => {
 			config.signal = signal;
-			return listRepo(appId, installationId, config);
+			return listRepo(app_id, installation_id, config);
 		}
 	});
 }
 
 /**
- * {@link /api/github/repos/:appId/:installationId}
+ * {@link /api/github/repos/:app_id/:installation_id}
  */
 export function createListRepo<
 	TData = ListRepoQueryResponse,
 	TQueryData = ListRepoQueryResponse,
 	TQueryKey extends QueryKey = ListRepoQueryKey
 >(
-	appId: ListRepoPathParams['appId'],
-	installationId: ListRepoPathParams['installationId'],
+	app_id: ListRepoPathParams['app_id'],
+	installation_id: ListRepoPathParams['installation_id'],
 	options: {
 		query?: Partial<
 			CreateBaseQueryOptions<
@@ -80,10 +80,10 @@ export function createListRepo<
 	} = {}
 ) {
 	const { query: queryOptions, client: config = {} } = options ?? {};
-	const queryKey = queryOptions?.queryKey ?? listRepoQueryKey(appId, installationId);
+	const queryKey = queryOptions?.queryKey ?? listRepoQueryKey(app_id, installation_id);
 
 	const query = createQuery({
-		...(listRepoQueryOptions(appId, installationId, config) as unknown as CreateBaseQueryOptions),
+		...(listRepoQueryOptions(app_id, installation_id, config) as unknown as CreateBaseQueryOptions),
 		queryKey,
 		...(queryOptions as unknown as Omit<CreateBaseQueryOptions, 'queryKey'>)
 	}) as CreateQueryResult<TData, ResponseErrorConfig<Error>> & { queryKey: TQueryKey };

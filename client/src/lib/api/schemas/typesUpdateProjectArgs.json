@@ -6,6 +6,7 @@
 		"id": { "type": "string" },
 		"installation_id": { "type": "string" },
 		"name": { "type": "string" },
+		"repo_fullname": { "type": "string" },
 		"repo_id": { "type": "string" },
 		"require_approval": { "type": "boolean" }
 	},
@@ -16,6 +17,7 @@
 		"id",
 		"installation_id",
 		"name",
+		"repo_fullname",
 		"repo_id",
 		"require_approval"
 	],

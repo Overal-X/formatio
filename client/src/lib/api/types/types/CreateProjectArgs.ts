@@ -22,6 +22,10 @@ export type TypesCreateProjectArgs = {
 	/**
 	 * @type string
 	 */
+	repo_fullname: string;
+	/**
+	 * @type string
+	 */
 	repo_id: string;
 	/**
 	 * @type boolean

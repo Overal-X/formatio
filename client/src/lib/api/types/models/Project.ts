@@ -28,6 +28,10 @@ export type ModelsProject = {
 	 */
 	name: string;
 	/**
+	 * @type string
+	 */
+	repo_fullname: string;
+	/**
 	 * @type integer
 	 */
 	repo_id: number;

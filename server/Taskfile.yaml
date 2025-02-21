@@ -6,3 +6,6 @@ tasks:
 
   doc:generate:
     cmd: swag init -ot=go,yaml --requiredByDefault=true
+
+  start:traefik:
+    cmd: docker run -d -p 9090:8080 -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock --name traefik traefik:v3.3 --api.insecure=true --providers.docker

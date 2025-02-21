@@ -15,6 +15,74 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/deployments/{deployment_id}/logs/": {
+            "get": {
+                "operationId": "list-deployment-logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deployment Id",
+                        "name": "deployment_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "List Deployments Logs Args",
+                        "name": "args",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ListDeploymentLogsArgs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeploymentLog"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/deployments/{project_id}": {
+            "get": {
+                "operationId": "list-deployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project Id",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "List Deployments Args",
+                        "name": "args",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ListDeploymentsArgs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Deployment"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/github": {
             "get": {
                 "operationId": "create-app",
@@ -44,14 +112,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/github/installations/{appId}": {
+        "/api/github/installations/{app_id}": {
             "get": {
                 "operationId": "list-installations",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "App Id",
-                        "name": "appId",
+                        "name": "app_id",
                         "in": "path",
                         "required": true
                     }
@@ -69,21 +137,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/github/repos/{appId}/{installationId}": {
+        "/api/github/repos/{app_id}/{installation_id}": {
             "get": {
                 "operationId": "list-repo",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "App Id",
-                        "name": "appId",
+                        "name": "app_id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Installation Id",
-                        "name": "installationId",
+                        "name": "installation_id",
                         "in": "path",
                         "required": true
                     }
@@ -206,9 +274,190 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/projects/{id}/deploy": {
+            "post": {
+                "operationId": "deploy-project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Deploy Args",
+                        "name": "args",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.DeployArgs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Project"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/projects/{id}/network": {
+            "get": {
+                "operationId": "get-network",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Network"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.Deployment": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "environment",
+                "environment_id",
+                "id",
+                "message",
+                "project",
+                "project_id",
+                "status",
+                "updated_at"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "environment": {
+                    "$ref": "#/definitions/models.Environment"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "project": {
+                    "$ref": "#/definitions/models.Project"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.DeploymentStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeploymentLog": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "deployment",
+                "deployment_id",
+                "id",
+                "message",
+                "updated_at"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deployment": {
+                    "$ref": "#/definitions/models.Deployment"
+                },
+                "deployment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeploymentStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "RUNNING",
+                "SUCCESS",
+                "FAILURE"
+            ],
+            "x-enum-varnames": [
+                "DeploymentStatusPending",
+                "DeploymentStatusRunning",
+                "DeploymentStatusSuccess",
+                "DeploymentStatusFailure"
+            ]
+        },
+        "models.Environment": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "id",
+                "is_active",
+                "name",
+                "project",
+                "project_id",
+                "updated_at",
+                "variables"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project": {
+                    "$ref": "#/definitions/models.Project"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "variables": {
+                    "type": "string"
+                }
+            }
+        },
         "models.GithubApp": {
             "type": "object",
             "required": [
@@ -248,6 +497,45 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Network": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "host_name",
+                "id",
+                "port",
+                "project",
+                "project_id",
+                "target_id",
+                "updated_at"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "host_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "project": {
+                    "$ref": "#/definitions/models.Project"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Project": {
             "type": "object",
             "required": [
@@ -258,6 +546,7 @@ const docTemplate = `{
                 "id",
                 "installation_id",
                 "name",
+                "repo_fullname",
                 "repo_id",
                 "require_approval",
                 "updated_at"
@@ -284,6 +573,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "repo_fullname": {
+                    "type": "string"
+                },
                 "repo_id": {
                     "type": "integer"
                 },
@@ -303,6 +595,7 @@ const docTemplate = `{
                 "description",
                 "installation_id",
                 "name",
+                "repo_fullname",
                 "repo_id",
                 "require_approval",
                 "variables"
@@ -323,6 +616,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "repo_fullname": {
+                    "type": "string"
+                },
                 "repo_id": {
                     "type": "string"
                 },
@@ -330,6 +626,17 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "variables": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.DeployArgs": {
+            "type": "object",
+            "required": [
+                "commit_sha"
+            ],
+            "properties": {
+                "commit_sha": {
                     "type": "string"
                 }
             }
@@ -376,6 +683,12 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ListDeploymentLogsArgs": {
+            "type": "object"
+        },
+        "types.ListDeploymentsArgs": {
+            "type": "object"
+        },
         "types.Repo": {
             "type": "object",
             "required": [
@@ -412,6 +725,7 @@ const docTemplate = `{
                 "id",
                 "installation_id",
                 "name",
+                "repo_fullname",
                 "repo_id",
                 "require_approval"
             ],
@@ -432,6 +746,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "repo_fullname": {
                     "type": "string"
                 },
                 "repo_id": {
