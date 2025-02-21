@@ -298,7 +298,7 @@ func (p *ProjectService) HandleDeploy(args types.DeployArgs) error {
 				HostName:  hostName,
 			}
 			err := p.db.Create(&network).Error
-			if errors.Is(gorm.ErrDuplicatedKey, err) {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
 				p.db.Updates(&network)
 			}
 		},
