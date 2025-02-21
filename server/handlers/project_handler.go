@@ -89,7 +89,7 @@ func (p *ProjectHandler) Update(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	return c.JSON(http.StatusCreated, project)
+	return c.JSON(http.StatusOK, project)
 }
 
 // @ID delete-project
